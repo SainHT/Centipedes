@@ -14,8 +14,9 @@
 .extern IsKeyDown
 
 # Constants
-.equ SCREEN_WIDTH, 800
-.equ SCREEN_HEIGHT, 600
+.equ SCREEN_WIDTH, 240
+.equ SCREEN_HEIGHT, 256
+.equ Upscale, 3
 .equ KEY_UP, 265
 .equ KEY_DOWN, 264
 .equ KEY_LEFT, 263
@@ -28,7 +29,7 @@
 .equ RED, 0xFFFF0000
 
 .section .data
-window_title: .asciz "Pure Assembly Centipedes"
+window_title: .asciz "Centipedes"
 score_text: .asciz "Score: %d"
 instructions: .asciz "Use arrow keys to move"
 
@@ -51,9 +52,15 @@ main:
     pushq %rbp
     movq %rsp, %rbp
     
-    # Initialize window
-    movl $SCREEN_WIDTH, %edi
-    movl $SCREEN_HEIGHT, %esi
+    # Initialize window (rescale based in choice)
+    movq $SCREEN_WIDTH, %rax
+    movq $Upscale, %rdx
+    mulq %rdx
+    movq %rax, %rdi
+    movq $SCREEN_HEIGHT, %rax
+    movq $Upscale, %rdx
+    mulq %rdx
+    movq %rax, %rsi
     leaq window_title(%rip), %rdx
     call InitWindow
     
