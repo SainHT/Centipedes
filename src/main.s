@@ -14,9 +14,8 @@
 .extern IsKeyDown
 
 # Constants
-.equ SCREEN_WIDTH, 240
-.equ SCREEN_HEIGHT, 256
-.equ Upscale, 3
+.equ SCREEN_WIDTH, 480
+.equ SCREEN_HEIGHT, 512
 .equ KEY_UP, 265
 .equ KEY_DOWN, 264
 .equ KEY_LEFT, 263
@@ -53,14 +52,8 @@ main:
     movq %rsp, %rbp
     
     # Initialize window (rescale based in choice)
-    movq $SCREEN_WIDTH, %rax
-    movq $Upscale, %rdx
-    mulq %rdx
-    movq %rax, %rdi
-    movq $SCREEN_HEIGHT, %rax
-    movq $Upscale, %rdx
-    mulq %rdx
-    movq %rax, %rsi
+    movq $SCREEN_WIDTH, %rdi
+    movq $SCREEN_HEIGHT, %rsi
     leaq window_title(%rip), %rdx
     call InitWindow
     
