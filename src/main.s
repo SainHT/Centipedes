@@ -1,12 +1,17 @@
 .section .text
 .global main
 
+# Grid generation function
+.extern generate_grid
+.extern draw_grid
+
 # External raylib functions (System V x86-64 calling convention)
 .extern InitWindow
 .extern WindowShouldClose
 .extern BeginDrawing
 .extern EndDrawing
 .extern ClearBackground
+.extern DrawCircle
 .extern DrawRectangle
 .extern DrawText
 .extern CloseWindow
@@ -33,8 +38,8 @@ score_text: .asciz "Score: %d"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
-player_x: .long 400
-player_y: .long 550
+player_x: .long 200
+player_y: .long 200
 player_width: .long 20
 player_height: .long 20
 
@@ -45,6 +50,8 @@ enemy_height: .long 15
 
 score: .long 0
 speed: .long 3
+
+grid: .zero 30 * 30  # 30x30 grid for mushrooms (value represents Health of mushroom)
 
 .section .text
 main:
@@ -60,6 +67,10 @@ main:
     # Set target FPS
     movl $60, %edi
     call SetTargetFPS
+
+    # Generate the grid with mushrooms
+    leaq grid(%rip), %rdi
+    call generate_grid
 
 game_loop:
     # Check if window should close
@@ -255,6 +266,11 @@ render_frame:
     # Clear background
     movl $BLACK, %edi
     call ClearBackground
+
+    # Draw grid (mushrooms)
+    leaq grid(%rip), %rdi
+    call draw_grid
+
     
     # Draw player (using System V x86-64 ABI)
     movl player_x(%rip), %edi
