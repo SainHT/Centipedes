@@ -6,8 +6,8 @@
 .equ KEY_LEFT, 263
 .equ KEY_RIGHT, 262
 
-.global check_boundaries
-.global handle_input
+
+#.global handle_input
 # Handle player input
 # param rdi - player pointer
 # param rsi - speed
