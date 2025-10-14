@@ -46,7 +46,7 @@ score_text: .asciz "Score: %d"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
-grid: .zero 30 * 30  # 30x30 grid for mushrooms (value represents Health of mushroom)
+grid: .zero 32 * 30  # 32x30 grid for mushrooms (value represents Health of mushroom)
 
 player_x: .long 0
 player_y: .long 0
