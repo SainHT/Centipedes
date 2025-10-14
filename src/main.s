@@ -57,7 +57,7 @@ grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of m
 player:
     .quad 200 #x
     .quad 200 #y
-    .quad 20 #size
+    .quad 16 #size
 
 bullets:
     #bullet 1
