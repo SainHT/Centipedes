@@ -5,11 +5,10 @@
 .extern generate_grid
 .extern draw_grid
 
-#centipede functions
-.extern init_centipede
-.extern update_centipede
-
-.extern draw_centipede
+# enemy functions
+.extern init_enemies
+.extern update_enemies
+.extern draw_enemies
 
 # External raylib functions (System V x86-64 calling convention)
 .extern InitWindow
@@ -55,7 +54,7 @@ enemy_width: .long 15
 enemy_height: .long 15
 
 # centipede always has the first and last segment dead (in order to simplify split logic)
-centipede: .zero 240    # memory placeholder for centipede segments
+centipede: .zero 360    # memory placeholder for centipede segments
 
 # Structure for a centipede segment
 # Segment is 12 bytes:
@@ -65,6 +64,17 @@ centipede: .zero 240    # memory placeholder for centipede segments
 #  .byte 1             direction (1 for right, -1 for left) (1 byte)
 #  .byte 1             absolute direction (1 for down, -1 for up) (1 byte)
 #  .byte 1             state (1 for alive, 0 for dead) (1 byte)
+
+# flea
+flea:
+    .long 0              # x position
+    .long 0              # y position
+
+# spider
+spider:
+    .long 0              # x position
+    .long 0              # y position
+    .byte 0              # direction (00 for leftdown, 01 for rightdown, 10 for leftup, 11 for rightup)
 
 
 score: .long 0
@@ -92,7 +102,9 @@ main:
 
     # Initialize centipede
     leaq centipede(%rip), %rdi
-    call init_centipede
+    leaq spider(%rip), %rsi
+    leaq flea(%rip), %rdx
+    call init_enemies
 
 game_loop:
     # Check if window should close
@@ -130,8 +142,10 @@ update_game:
 
     # Update centipede
     leaq centipede(%rip), %rdi
-    leaq grid(%rip), %rsi
-    call update_centipede
+    leaq spider(%rip), %rsi
+    leaq flea(%rip), %rdx
+    leaq grid(%rip), %rcx
+    call update_enemies
     
     # Move enemy
     addl $2, enemy_x(%rip)
@@ -217,9 +231,10 @@ render_frame:
 
     # Draw centipede (temporary - draw single segment for now)
     leaq centipede(%rip), %rdi
-    call draw_centipede
+    leaq spider(%rip), %rsi
+    leaq flea(%rip), %rdx
+    call draw_enemies
 
-    
     # Draw player (using System V x86-64 ABI)
     movl player(%rip), %edi
     movl player+8(%rip), %esi
