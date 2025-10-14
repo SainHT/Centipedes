@@ -200,3 +200,31 @@ update_segment:
     movq %rbp, %rsp
     popq %rbp
     ret
+
+
+
+# %rdi = pointer to segment
+# %rsi = pointer to grid
+destroy_segment:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movb $0, 11(%rdi)           # set state to dead
+
+    xor %rax, %rax
+    movl 8(%rdi), %eax          # get y position
+    shr $4, %eax                # y / 16 -> row index
+
+    movl 0(%rdi), %edx          # get x position
+    shr $4, %edx                # x / 16 -> col index
+
+    imull $GRID_COLS, %eax      # row * GRID_COLS
+    addl %edx, %eax             # index = row * GRID_COLS + col
+
+    movb $3, (%rsi,%rax)        # set grid cell to 3 (mushroom)
+
+    # //TODO: move all segments behind to last true grid position (not sure if needed)
+
+    movq %rbp, %rsp
+    popq %rbp
+    ret
