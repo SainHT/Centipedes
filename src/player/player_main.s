@@ -1,5 +1,6 @@
 
 .section .text
+.global handle_input
 
 .equ KEY_UP, 265
 .equ KEY_DOWN, 264
