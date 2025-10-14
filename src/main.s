@@ -4,6 +4,10 @@
 # Grid generation function
 .extern generate_grid
 .extern draw_grid
+.extern bullet_update
+.extern bullet_shoot
+.extern handle_input
+
 
 #centipede functions
 .extern init_centipede
@@ -31,11 +35,17 @@
 .equ SCREEN_HEIGHT, 512
 
 
+.equ BULLET_WIDTH, 2
+.equ BULLET_HEIGHT, 14
+.equ BULLET_SPEED, 10
+.equ BULLET_COOLDOWN, 13
+
 # Color constants (RGBA format)
 .equ BLACK, 0xFF000000
 .equ WHITE, 0xFFFFFFFF
 .equ GREEN, 0xFF00FF00
 .equ RED, 0xFFFF0000
+.equ BULLET_COLOR, 0xFFFFFF00
 
 .section .data
 window_title: .asciz "Centipedes"
@@ -48,6 +58,31 @@ player:
     .quad 200 #x
     .quad 200 #y
     .quad 20 #size
+
+bullets:
+    #bullet 1
+    .quad 100 #x
+    .quad 300 #y
+    .quad 0 #active (0 or 1)
+    #bullet 2
+    .quad 200 #x
+    .quad 300 #y
+    .quad 0 #active (0 or 1)
+    #bullet 3
+    .quad 300 #x
+    .quad 300 #y
+    .quad 0 #active (0 or 1)
+    #bullet 4
+    .quad 400 #x
+    .quad 300 #y
+    .quad 0 #active (0 or 1)
+    #bullet 5
+    .quad 450 #x
+    .quad 300 #y
+    .quad 0 #active (0 or 1)
+
+bullet_index: .quad 0
+bullet_cooldown: .quad 0
 
 enemy_x: .long 100
 enemy_y: .long 100
@@ -71,7 +106,9 @@ score: .long 0
 speed: .long 3
 
 .section .text
-.include "../../src/player/player_main.s"
+// .include "../../src/player/player_main.s"
+// .include "../../src/bullet/bullet_main.s"
+
 main:
     pushq %rbp
     movq %rsp, %rbp
@@ -106,7 +143,31 @@ game_loop:
     movq $SCREEN_WIDTH, %rdx
     movq $SCREEN_HEIGHT, %rcx
     call handle_input
-    
+
+    # Update bullets
+    leaq bullets(%rip), %rdi
+    movq $BULLET_WIDTH, %rsi
+    movq $BULLET_HEIGHT, %rdx
+    movq $BULLET_SPEED, %rcx
+    call bullet_update
+
+    # Shoot a bullet every BULLET_COOLDOWN frames
+    # If player waits for signed quad frames without shooting he will be locked out of shooting :)
+    cmpq $BULLET_COOLDOWN, bullet_cooldown(%rip)
+    jl .skip_shoot
+
+    leaq bullets(%rip), %rdi
+    movq player+16(%rip), %rsi  # Player size
+    shrq $1, %rsi
+    addq player(%rip), %rsi  # Player X position
+    movq player+8(%rip), %rdx  # Player Y position
+    call bullet_shoot
+    cmpq $0, %rax
+    je .skip_shoot
+    movq $0, bullet_cooldown(%rip)
+.skip_shoot:
+    addq $1, bullet_cooldown(%rip)
+
     # Update game logic
     call update_game
     
@@ -228,6 +289,33 @@ render_frame:
     movl $GREEN, %r8d
     call DrawRectangle
     
+    # Draw bullets
+    # TODO: Loop through bullets and draw active ones
+    movq $0,  bullet_index(%rip)
+.render_bullets_loop:
+    leaq bullets+16(%rip), %rax
+    addq bullet_index(%rip), %rax
+    cmpq $0, (%rax)
+    je .render_bullets_loop_end
+    
+    leaq bullets(%rip), %rax
+    addq bullet_index(%rip), %rax
+    movq (%rax), %rdi
+
+    leaq bullets+8(%rip), %rax
+    addq bullet_index(%rip), %rax
+    movq (%rax), %rsi
+
+    movl $BULLET_WIDTH, %edx
+    movl $BULLET_HEIGHT, %ecx
+    movl $BULLET_COLOR, %r8d
+    call DrawRectangle
+
+.render_bullets_loop_end:
+    addq $24, bullet_index(%rip)
+    cmpq $120, bullet_index(%rip) # 24*5=120
+    jl .render_bullets_loop
+
     # Draw enemy
     movl enemy_x(%rip), %edi
     movl enemy_y(%rip), %esi
