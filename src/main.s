@@ -59,16 +59,16 @@ enemy_width: .long 15
 enemy_height: .long 15
 
 # centipede always has the first and last segment dead (in order to simplify split logic)
-centipede: .zero 144    # Placeholder for centipede segments
+centipede: .zero 240    # memory placeholder for centipede segments
 
 # Structure for a centipede segment
-centipede_segment:
-    .long 240           # x position (4 bytes)
-    .long 0             # y position (4 bytes)
-    .byte 16            # size (max 127) (1 byte)
-    .byte 1             # direction (1 for right, -1 for left) (1 byte)
-    .byte 1             # absolute direction (1 for down, -1 for up) (1 byte)
-    .byte 1             # state (1 for alive, 0 for dead) (1 byte)
+# Segment is 12 bytes:
+#  .long 240           x position (4 bytes)
+#  .long 0             y position (4 bytes)
+#  .byte 16            size (max 127) (1 byte)
+#  .byte 1             direction (1 for right, -1 for left) (1 byte)
+#  .byte 1             absolute direction (1 for down, -1 for up) (1 byte)
+#  .byte 1             state (1 for alive, 0 for dead) (1 byte)
 
 
 score: .long 0

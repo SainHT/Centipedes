@@ -22,7 +22,7 @@ draw_centipede:
     call draw_segment
 
     incq %r12
-    cmpq $MAX_SEGMENTS, %r12
+    cmpq $MAX_SEGMENTS, %r12     # repeat for all segments
     jl .draw_centipede_loop
     
     popq %rbx

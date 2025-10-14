@@ -7,7 +7,7 @@
 .equ SCREEN_HEIGHT, 512
 .equ GRID_COLS, 30
 .equ SPEED, 4                   # has to be a factor of 16
-.equ MAX_SEGMENTS, 11           # maximum segments in a centipede
+.equ MAX_SEGMENTS, 15           # maximum segments in a centipede
 
 
 # %rdi = pointer to centipede structure
@@ -16,10 +16,10 @@ init_centipede:
     movq %rsp, %rbp
     push %rbx
 
-    movq %rdi, %rbx              # centipede pointer in %rbx
+    movq %rdi, %rbx             # centipede pointer in %rbx
 
     # Initialize centipede segments and positions
-    movq $5, %rdi
+    movq $7, %rdi
     movq $MAX_SEGMENTS, %rsi
     call GetRandomValue         # random starting number of segments
 
@@ -33,11 +33,11 @@ init_centipede:
     # Calculate segment pointer
     movq %r8, %rax
     imulq $12, %rax            # segment = 12 bytes
-    leaq (%rbx,%rax), %rdi    # current segment pointer in %rdi
+    leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
 
     # move X position based on index
     movl $16, %eax
-    imull %r8d, %eax           # %eax = 16 * index
+    imull %r8d, %eax           # %rax = 16 * index
     addl $240, %eax            # starting X position offset
 
     # Set initial position and state
@@ -83,7 +83,7 @@ update_centipede:
     call update_segment
 
     incq %r12
-    cmpq $MAX_SEGMENTS, %r12
+    cmpq $MAX_SEGMENTS, %r12     # repeat for all segments
     jl .update_centipede_loop
 
     popq %rbx
