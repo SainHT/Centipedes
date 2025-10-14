@@ -2,8 +2,6 @@
 .global generate_grid
 .global draw_grid
 
-.extern GetRandomValue
-
 .equ GRID_ROWS, 30
 .equ GRID_COLS, 30
 .equ MUSHROOMS, 50
@@ -23,7 +21,7 @@ generate_grid:
 
     movq %rdi, %rbx              # grid pointer in rbx
 
-    # generate 100 random values for the grid
+    # generate MUSHROOMS random values for the grid
     movq $MUSHROOMS, %r12              # number of mushrooms to generate
 .generate_mushrooms_loop:
     # random index in the grid
@@ -32,7 +30,7 @@ generate_grid:
     mulq %rdi                    # rax = GRID_COLS * GRID_ROWS
     decq %rax                    # max index is size-1
 
-    movq $0, %rdi
+    movq $30, %rdi
     movq %rax, %rsi
     call GetRandomValue
 

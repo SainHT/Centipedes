@@ -5,6 +5,12 @@
 .extern generate_grid
 .extern draw_grid
 
+#centipede functions
+.extern init_centipede
+.extern update_centipede
+
+.extern draw_centipede
+
 # External raylib functions (System V x86-64 calling convention)
 .extern InitWindow
 .extern WindowShouldClose
@@ -17,6 +23,8 @@
 .extern CloseWindow
 .extern SetTargetFPS
 .extern IsKeyDown
+
+.extern GetRandomValue
 
 # Constants
 .equ SCREEN_WIDTH, 480
@@ -35,6 +43,7 @@ score_text: .asciz "Score: %d"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
+grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of mushroom)
 player:
     .quad 200 #x
     .quad 200 #y
@@ -45,10 +54,21 @@ enemy_y: .long 100
 enemy_width: .long 15
 enemy_height: .long 15
 
+# centipede always has the first and last segment dead (in order to simplify split logic)
+centipede: .zero 240    # memory placeholder for centipede segments
+
+# Structure for a centipede segment
+# Segment is 12 bytes:
+#  .long 240           x position (4 bytes)
+#  .long 0             y position (4 bytes)
+#  .byte 16            size (max 127) (1 byte)
+#  .byte 1             direction (1 for right, -1 for left) (1 byte)
+#  .byte 1             absolute direction (1 for down, -1 for up) (1 byte)
+#  .byte 1             state (1 for alive, 0 for dead) (1 byte)
+
+
 score: .long 0
 speed: .long 3
-
-grid: .zero 30 * 30  # 30x30 grid for mushrooms (value represents Health of mushroom)
 
 .section .text
 .include "../../src/player/player_main.s"
@@ -69,6 +89,10 @@ main:
     # Generate the grid with mushrooms
     leaq grid(%rip), %rdi
     call generate_grid
+
+    # Initialize centipede
+    leaq centipede(%rip), %rdi
+    call init_centipede
 
 game_loop:
     # Check if window should close
@@ -103,6 +127,11 @@ game_exit:
 update_game:
     pushq %rbp
     movq %rsp, %rbp
+
+    # Update centipede
+    leaq centipede(%rip), %rdi
+    leaq grid(%rip), %rsi
+    call update_centipede
     
     # Move enemy
     addl $2, enemy_x(%rip)
@@ -185,6 +214,10 @@ render_frame:
     # Draw grid (mushrooms)
     leaq grid(%rip), %rdi
     call draw_grid
+
+    # Draw centipede (temporary - draw single segment for now)
+    leaq centipede(%rip), %rdi
+    call draw_centipede
 
     
     # Draw player (using System V x86-64 ABI)
