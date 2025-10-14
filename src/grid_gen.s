@@ -23,7 +23,7 @@ generate_grid:
 
     movq %rdi, %rbx              # grid pointer in rbx
 
-    # generate 100 random values for the grid
+    # generate MUSHROOMS random values for the grid
     movq $MUSHROOMS, %r12              # number of mushrooms to generate
 .generate_mushrooms_loop:
     # random index in the grid
