@@ -2,7 +2,7 @@
 .global draw_centipede
 
 .equ PURPLE, 0xFFA020F0
-.equ MAX_SEGMENTS, 11           # maximum segments in a centipede
+.equ MAX_SEGMENTS, 13           # maximum segments in a centipede
 
 # rdi = pointer to centipede structure
 draw_centipede:

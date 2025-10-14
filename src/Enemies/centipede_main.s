@@ -7,7 +7,7 @@
 .equ SCREEN_HEIGHT, 512
 .equ GRID_COLS, 30
 .equ SPEED, 4                   # has to be a factor of 16
-.equ MAX_SEGMENTS, 15           # maximum segments in a centipede
+.equ MAX_SEGMENTS, 13           # maximum segments in a centipede
 
 
 # %rdi = pointer to centipede structure
@@ -19,7 +19,7 @@ init_centipede:
     movq %rdi, %rbx             # centipede pointer in %rbx
 
     # Initialize centipede segments and positions
-    movq $7, %rdi
+    movq $11, %rdi
     movq $MAX_SEGMENTS, %rsi
     call GetRandomValue         # random starting number of segments
 
@@ -224,6 +224,10 @@ destroy_segment:
     movb $3, (%rsi,%rax)        # set grid cell to 3 (mushroom)
 
     # //TODO: move all segments behind to last true grid position (not sure if needed)
+
+
+    # //TODO: if all segments are dead, respawn centipede 
+    # (each successive centipede is one segment shorter and accompanied by one detached head)
 
     movq %rbp, %rsp
     popq %rbp
