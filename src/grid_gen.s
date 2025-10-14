@@ -2,8 +2,6 @@
 .global generate_grid
 .global draw_grid
 
-.extern GetRandomValue
-
 .equ GRID_ROWS, 30
 .equ GRID_COLS, 30
 .equ MUSHROOMS, 50
@@ -32,7 +30,7 @@ generate_grid:
     mulq %rdi                    # rax = GRID_COLS * GRID_ROWS
     decq %rax                    # max index is size-1
 
-    movq $0, %rdi
+    movq $30, %rdi
     movq %rax, %rsi
     call GetRandomValue
 

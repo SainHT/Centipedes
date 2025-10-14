@@ -1,16 +1,31 @@
 .section .text
 .global draw_centipede
-.global draw_segment
 
 .equ PURPLE, 0xFFA020F0
+.equ MAX_SEGMENTS, 11           # maximum segments in a centipede
 
 # rdi = pointer to centipede structure
 draw_centipede:
     pushq %rbp
     movq %rsp, %rbp
+    pushq %rbx
 
-    # Draw each segment of the centipede
+    movq %rdi, %rbx              # centipede pointer in %rbx
+    movq $0, %r12                # index %r12
+.draw_centipede_loop:
+    # Calculate segment pointer
+    movq %r12, %rax
+    imulq $12, %rax              # segment = 12 bytes
+    leaq (%rbx,%rax), %rdi       # current segment pointer in %rdi
 
+    # Update segment
+    call draw_segment
+
+    incq %r12
+    cmpq $MAX_SEGMENTS, %r12
+    jl .draw_centipede_loop
+    
+    popq %rbx
     movq %rbp, %rsp
     popq %rbp
     ret

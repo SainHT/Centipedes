@@ -8,10 +8,8 @@
 #centipede functions
 .extern init_centipede
 .extern update_centipede
-.extern update_segment        # temporary for testing
 
 .extern draw_centipede
-.extern draw_segment          # temporary for testing 
 
 # External raylib functions (System V x86-64 calling convention)
 .extern InitWindow
@@ -25,6 +23,8 @@
 .extern CloseWindow
 .extern SetTargetFPS
 .extern IsKeyDown
+
+.extern GetRandomValue
 
 # Constants
 .equ SCREEN_WIDTH, 480
@@ -46,7 +46,7 @@ score_text: .asciz "Score: %d"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
-grid: .zero 32 * 30  # 32x30 grid for mushrooms (value represents Health of mushroom)
+grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of mushroom)
 
 player_x: .long 0
 player_y: .long 0
@@ -58,17 +58,17 @@ enemy_y: .long 100
 enemy_width: .long 15
 enemy_height: .long 15
 
-# centipede always has the first and last segment dead (in order to simplify movement logic)
-centipede: .zero 100  # Placeholder for centipede segments
+# centipede always has the first and last segment dead (in order to simplify split logic)
+centipede: .zero 144    # Placeholder for centipede segments
 
 # Structure for a centipede segment
 centipede_segment:
-    .long 240     # x position
-    .long 0     # y position
-    .byte 16     # size (max 255)
-    .byte 1     # direction (1 for right, -1 for left)
-    .byte 1     # absolute direction (1 for down, -1 for up)
-    .byte 1     # dead (1 for alive, 0 for dead)
+    .long 240           # x position (4 bytes)
+    .long 0             # y position (4 bytes)
+    .byte 16            # size (max 127) (1 byte)
+    .byte 1             # direction (1 for right, -1 for left) (1 byte)
+    .byte 1             # absolute direction (1 for down, -1 for up) (1 byte)
+    .byte 1             # state (1 for alive, 0 for dead) (1 byte)
 
 
 score: .long 0
@@ -92,6 +92,10 @@ main:
     # Generate the grid with mushrooms
     leaq grid(%rip), %rdi
     call generate_grid
+
+    # Initialize centipede
+    leaq centipede(%rip), %rdi
+    call init_centipede
 
 game_loop:
     # Check if window should close
@@ -211,9 +215,9 @@ update_game:
     movq %rsp, %rbp
 
     # Update centipede
-    leaq centipede_segment(%rip), %rdi
+    leaq centipede(%rip), %rdi
     leaq grid(%rip), %rsi
-    call update_segment
+    call update_centipede
     
     # Move enemy
     addl $2, enemy_x(%rip)
@@ -298,8 +302,8 @@ render_frame:
     call draw_grid
 
     # Draw centipede (temporary - draw single segment for now)
-    leaq centipede_segment(%rip), %rdi
-    call draw_segment
+    leaq centipede(%rip), %rdi
+    call draw_centipede
 
     
     # Draw player (using System V x86-64 ABI)
