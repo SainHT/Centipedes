@@ -21,10 +21,7 @@
 # Constants
 .equ SCREEN_WIDTH, 480
 .equ SCREEN_HEIGHT, 512
-.equ KEY_UP, 265
-.equ KEY_DOWN, 264
-.equ KEY_LEFT, 263
-.equ KEY_RIGHT, 262
+
 
 # Color constants (RGBA format)
 .equ BLACK, 0xFF000000
@@ -38,10 +35,10 @@ score_text: .asciz "Score: %d"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
-player_x: .long 200
-player_y: .long 200
-player_width: .long 20
-player_height: .long 20
+player:
+    .quad 200 #x
+    .quad 200 #y
+    .quad 20 #size
 
 enemy_x: .long 100
 enemy_y: .long 100
@@ -54,6 +51,7 @@ speed: .long 3
 grid: .zero 30 * 30  # 30x30 grid for mushrooms (value represents Health of mushroom)
 
 .section .text
+.include "../../src/player/player_main.s"
 main:
     pushq %rbp
     movq %rsp, %rbp
@@ -79,6 +77,10 @@ game_loop:
     jnz game_exit
     
     # Handle input
+    leaq player(%rip), %rdi
+    movq speed(%rip), %rsi
+    movq $SCREEN_WIDTH, %rdx
+    movq $SCREEN_HEIGHT, %rcx
     call handle_input
     
     # Update game logic
@@ -95,93 +97,6 @@ game_exit:
     # Return 0
     movl $0, %eax
     popq %rbp
-    ret
-
-# Handle player input
-handle_input:
-    pushq %rbp
-    movq %rsp, %rbp
-    
-    # Check UP key
-    movl $KEY_UP, %edi
-    call IsKeyDown
-    testl %eax, %eax
-    jz .check_down
-    
-    # Move up
-    movl speed(%rip), %eax
-    subl %eax, player_y(%rip)
-    
-.check_down:
-    movl $KEY_DOWN, %edi
-    call IsKeyDown
-    testl %eax, %eax
-    jz .check_left
-    
-    # Move down
-    movl speed(%rip), %eax
-    addl %eax, player_y(%rip)
-    
-.check_left:
-    movl $KEY_LEFT, %edi
-    call IsKeyDown
-    testl %eax, %eax
-    jz .check_right
-    
-    # Move left
-    movl speed(%rip), %eax
-    subl %eax, player_x(%rip)
-    
-.check_right:
-    movl $KEY_RIGHT, %edi
-    call IsKeyDown
-    testl %eax, %eax
-    jz .input_done
-    
-    # Move right
-    movl speed(%rip), %eax
-    addl %eax, player_x(%rip)
-
-.input_done:
-    # Boundary checking
-    call check_boundaries
-    
-    popq %rbp
-    ret
-
-# Check player boundaries
-check_boundaries:
-    # Check left boundary
-    movl player_x(%rip), %eax
-    testl %eax, %eax
-    jns .check_right_boundary
-    movl $0, player_x(%rip)
-    
-.check_right_boundary:
-    movl player_x(%rip), %eax
-    addl player_width(%rip), %eax
-    cmpl $SCREEN_WIDTH, %eax
-    jle .check_top_boundary
-    movl $SCREEN_WIDTH, %eax
-    subl player_width(%rip), %eax
-    movl %eax, player_x(%rip)
-    
-.check_top_boundary:
-    movl player_y(%rip), %eax
-    testl %eax, %eax
-    jns .check_bottom_boundary
-    movl $0, player_y(%rip)
-    
-.check_bottom_boundary:
-    movl player_y(%rip), %eax
-    addl player_height(%rip), %eax
-    cmpl $SCREEN_HEIGHT, %eax
-    jle .boundaries_done
-    movl $SCREEN_HEIGHT, %eax
-    subl player_height(%rip), %eax
-    movl %eax, player_y(%rip)
-    
-.boundaries_done:
     ret
 
 # Update game logic
@@ -226,26 +141,26 @@ update_game:
 # Returns: 1 if collision, 0 if no collision
 check_player_enemy_collision:
     # Check if player_x + player_width < enemy_x
-    movl player_x(%rip), %eax
-    addl player_width(%rip), %eax
+    movl player(%rip), %eax
+    addl player+16(%rip), %eax
     cmpl enemy_x(%rip), %eax
     jl .no_collision
     
     # Check if player_x > enemy_x + enemy_width
     movl enemy_x(%rip), %eax
     addl enemy_width(%rip), %eax
-    cmpl player_x(%rip), %eax
+    cmpl player(%rip), %eax
     jl .no_collision
     
     # Check Y axis
-    movl player_y(%rip), %eax
-    addl player_height(%rip), %eax
+    movl player+8(%rip), %eax
+    addl player+16(%rip), %eax
     cmpl enemy_y(%rip), %eax
     jl .no_collision
     
     movl enemy_y(%rip), %eax
     addl enemy_height(%rip), %eax
-    cmpl player_y(%rip), %eax
+    cmpl player+8(%rip), %eax
     jl .no_collision
     
     # Collision detected
@@ -273,10 +188,10 @@ render_frame:
 
     
     # Draw player (using System V x86-64 ABI)
-    movl player_x(%rip), %edi
-    movl player_y(%rip), %esi
-    movl player_width(%rip), %edx
-    movl player_height(%rip), %ecx
+    movl player(%rip), %edi
+    movl player+8(%rip), %esi
+    movl player+16(%rip), %edx
+    movl player+16(%rip), %ecx
     movl $GREEN, %r8d
     call DrawRectangle
     
