@@ -2,13 +2,14 @@
 .global draw_centipede
 
 .equ PURPLE, 0xFFA020F0
-.equ MAX_SEGMENTS, 11           # maximum segments in a centipede
+.equ MAX_SEGMENTS, 13           # maximum segments in a centipede
 
 # rdi = pointer to centipede structure
 draw_centipede:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
+    pushq %r12
 
     movq %rdi, %rbx              # centipede pointer in %rbx
     movq $0, %r12                # index %r12
@@ -25,6 +26,7 @@ draw_centipede:
     cmpq $MAX_SEGMENTS, %r12     # repeat for all segments
     jl .draw_centipede_loop
     
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp

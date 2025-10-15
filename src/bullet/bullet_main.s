@@ -1,6 +1,8 @@
 .section .text
-.equ MAX_BULLETS, 5
-.equ KEY_SPACE, 32
+
+# Include constants
+.include "../../src/constants.s"
+
 # Bullet structure
 # .quad x
 # .quad y
