@@ -59,6 +59,7 @@ draw_grid:
     pushq %r13
 
     movq %rdi, %rbx              # grid pointer in rbx
+    movq $GRID_ROWS + 2, %r8
 
     xorq %r12, %r12              # row index
 .draw_grid_row_loop:
@@ -95,7 +96,7 @@ draw_grid:
     jl .draw_grid_col_loop
 
     incq %r12
-    cmpq $GRID_ROWS, %r12
+    cmpq %r8, %r12
     jl .draw_grid_row_loop
 
     popq %r13

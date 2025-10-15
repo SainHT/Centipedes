@@ -64,6 +64,7 @@ init_centipede:
 
 # %rdi = pointer to centipede structure
 # %rsi = pointer to grid
+# %rdx = pointer to bullets
 update_centipede:
     pushq %rbp
     movq %rsp, %rbp
@@ -94,20 +95,27 @@ update_centipede:
 
 # %rdi = pointer to segment
 # %rsi = pointer to grid
+# %rdx = pointer to bullets
 update_segment:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
+    pushq %r12
+    pushq %r13
 
-    movb 11(%rdi), %al          # load alive state to %rax
+    movq %rdi, %rbx             # segment pointer in %rbx
+    movq %rsi, %r12             # grid pointer in %r12
+    movq %rdx, %r13             # bullets pointer in %r13
+    
+    movb 11(%rbx), %al          # load alive state to %rax
     cmpb $0, %al
     je .update_segment_end      # if dead, skip update
 
     # Load segment state
-    movl (%rdi), %edx           # load x position to %rdx
-    movl 4(%rdi), %ecx          # load y position to %rcx
-    movsbl 9(%rdi), %r8d        # load direction to %r8 (sign-extended)
-    movsbl 10(%rdi), %r9d       # load absolute direction to %r9 (sign-extended)
+    movl     (%rbx), %edx       # load x position to %rdx
+    movl    4(%rbx), %ecx       # load y position to %rcx
+    movsbl  9(%rbx), %r8d       # load direction to %r8 (sign-extended)
+    movsbl 10(%rbx), %r9d       # load absolute direction to %r9 (sign-extended)
 
 .change_col:
     # Check if y-coordinate is divisible by 32 (every 4th movement)
@@ -139,15 +147,15 @@ update_segment:
     movl %ecx, %eax             
     shr $5, %eax                # y / 32 -> row index
     
-    xor %rbx, %rbx
-    movl %edx, %ebx             
-    shr $5, %ebx                # x / 32 -> col index
+    xor %esi, %esi
+    movl %edx, %esi             
+    shr $5, %esi                # x / 32 -> col index
 
     imull $GRID_COLS, %eax      # row * GRID_COLS
-    addl %ebx, %eax             # index = row * GRID_COLS + col
+    addl %esi, %eax             # index = row * GRID_COLS + col
 
     # checking if there's a mushroom
-    movb (%rsi,%rax), %al
+    movb (%r12,%rax), %al
     cmpb $0, %al
     je .update_position_x         # if no mushroom, continue moving
 
@@ -163,7 +171,7 @@ update_segment:
     jl .switch_abs_direction
     cmpl $SCREEN_HEIGHT, %ecx    # y < SCREEN_HEIGHT
     jge .switch_abs_direction
-    movl (%rdi), %edx           # load x position to %rdx
+    movl (%rbx), %edx           # load x position to %rdx
     jmp .update_position_y
 
 .switch_abs_direction:
@@ -171,12 +179,12 @@ update_segment:
     movl $64, %eax              
     imull %r9d, %eax            # %eax = 64 * absolute direction [-1; 1]
     addl %eax, %ecx             # move by 2 rows (64 since we moved 32 already and we want to go opposite direction)
-    movl (%rdi), %edx           # load x position to %rdx
+    movl (%rbx), %edx           # load x position to %rdx
     jmp .update_position_y
 
 .update_position_y:
     # Update based on absolute direction (SPEED pixel movement speed)
-    movl 4(%rdi), %ecx          # load y position to %rcx
+    movl 4(%rbx), %ecx          # load y position to %rcx
     movl $SPEED, %eax              
     imull %r9d, %eax            # %eax = SPEED * absolute direction [-1; 1]
     addl %eax, %ecx             # move by row
@@ -184,19 +192,43 @@ update_segment:
 
 .update_position_x:
     # Update based on direction (SPEED pixel movement speed)
-    movl (%rdi), %edx           # load x position to %rdx
+    movl (%rbx), %edx           # load x position to %rdx
     movl $SPEED, %eax              
     imull %r8d, %eax            # %eax = SPEED * direction [-1; 1]
     addl %eax, %edx             # update x position
 
 .store_position:
     # Store updated state back
-    movl %edx,  (%rdi)          # store updated x position
-    movl %ecx, 4(%rdi)          # store updated y position
-    movb %r8b, 9(%rdi)          # store updated direction
-    movb %r9b, 10(%rdi)         # store updated absolute direction
+    movl %edx,   (%rbx)         # store updated x position
+    movl %ecx,  4(%rbx)         # store updated y position
+    movb %r8b,  9(%rbx)         # store updated direction
+    movb %r9b, 10(%rbx)         # store updated absolute direction
+
+.bullet_collision:
+    # Check for bullet collision
+    movq %r13, %rdi             # bullets pointer in %rdi
+    xorq %rsi, %rsi
+    movl (%rbx), %esi           # get x position from segment
+    xorq %rdx, %rdx
+    movl 4(%rbx), %edx          # get y position from segment
+    movq $32, %rcx              # size in %rcx
+
+    call check_bullet_at_pos
+    cmpq $1, %rax
+    jne .update_segment_end     # if no collision, skip destroy
+    
+    # If collision, destroy segment
+    movq %rbx, %rdi             # segment pointer in %rdi
+    movq %r12, %rsi             # grid pointer in %rsi
+    call destroy_segment
 
 .update_segment_end:
+    movq %rbx, %rdi
+    movq %r12, %rsi
+    movq %r13, %rdx
+
+    popq %r13
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp
@@ -209,14 +241,17 @@ update_segment:
 destroy_segment:
     pushq %rbp
     movq %rsp, %rbp
+    pushq %rbx
 
     movb $0, 11(%rdi)           # set state to dead
 
     xor %rax, %rax
-    movl 8(%rdi), %eax          # get y position
+    movl 4(%rdi), %eax          # get y position
+    //addl $16, %eax              # center of segment
     shr $5, %eax                # y / 32 -> row index
 
-    movl 0(%rdi), %edx          # get x position
+    movl  (%rdi), %edx          # get x position
+    //addl $16, %edx              # center of segment
     shr $5, %edx                # x / 32 -> col index
 
     imull $GRID_COLS, %eax      # row * GRID_COLS
@@ -224,12 +259,32 @@ destroy_segment:
 
     movb $3, (%rsi,%rax)        # set grid cell to 3 (mushroom)
 
-    # //TODO: move all segments behind to last true grid position (not sure if needed)
+    # Return all prev segments to last %32 position
+    movq %rdi, %rbx
+    
+.move_segments_loop:
+    sub $12, %rbx               # previous segment
+    
+    cmpb $0, 11(%rbx)           # check if segment is alive
+    je .destroy_segments_end    # if dead, stop moving segments
+
+    movl (%rbx), %eax           # get x position
+    shr $5, %eax                # align to 32
+    shl $5, %eax                # align to 32
+    movl %eax, (%rbx)           # set x position
+    
+    movl 4(%rbx), %eax          # get y position
+    shr $5, %eax                # align to 32
+    shl $5, %eax                # align to 32
+    movl %eax, 4(%rbx)          # set y position
+
+    jmp .move_segments_loop
 
 
     # //TODO: if all segments are dead, respawn centipede 
     # (each successive centipede is one segment shorter and accompanied by one detached head)
-
+.destroy_segments_end:
+    popq %rbx
     movq %rbp, %rsp
     popq %rbp
     ret
