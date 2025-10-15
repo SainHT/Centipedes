@@ -7,6 +7,7 @@
 .extern bullet_update
 .extern bullet_shoot
 .extern handle_input
+.extern check_bullet_at_pos
 
 
 #centipede functions
@@ -193,7 +194,15 @@ update_game:
     leaq centipede(%rip), %rdi
     leaq grid(%rip), %rsi
     call update_centipede
-    
+
+    #Check bullet-enemy collision(pos left corner and width)
+    // leaq bullets(%rip), %rdi
+    // movq $200, %rsi # enemy_x
+    // movq $300, %rdx # enemy_y
+    // movq $100, %rcx # enemy_width
+    // call check_bullet_at_pos
+    #rax if there is a hit, increase score and reset enemy
+
     # Move enemy
     addl $2, enemy_x(%rip)
     

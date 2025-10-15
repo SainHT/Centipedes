@@ -7,6 +7,7 @@
 # .quad active (0 or 1)
 .global bullet_update
 .global bullet_shoot
+.global check_bullet_at_pos
 
 bullet_update:
     pushq %rbp
@@ -142,5 +143,117 @@ bullet1_shoot:
     popq %r13
     popq %r12
     popq %rbp
+    ret
+
+check_bullet_at_pos:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+
+    movq %rdi, %r15  # bullets base address in %r15
+    movq %rsi, %r14  # x in %r14
+    movq %rdx, %r13  # y in %r13
+    movq %rcx, %r12  # width in %r12
+
+    movq $0, %rax    # No hit by default
+
+    # Check each bullet for collision
+.check_bullet1:
+    cmpq $1, 16(%r15)
+    jne .check_bullet2
+    movq %r15, %rdi
+    call check_single_bullet_collision
+    testl %eax, %eax
+    jnz .hit_detected
+
+.check_bullet2:
+    cmpq $1, 40(%r15)
+    jne .check_bullet3
+    movq %r15, %rdi
+    addq $24, %rdi
+    call check_single_bullet_collision
+    testl %eax, %eax
+    jnz .hit_detected
+
+.check_bullet3:
+    cmpq $1, 64(%r15)
+    jne .check_bullet4
+    movq %r15, %rdi
+    addq $48, %rdi
+    call check_single_bullet_collision
+    testl %eax, %eax
+    jnz .hit_detected
+
+.check_bullet4:
+    cmpq $1, 88(%r15)
+    jne .check_bullet5
+    movq %r15, %rdi
+    addq $72, %rdi
+    call check_single_bullet_collision
+    testl %eax, %eax
+    jnz .hit_detected
+
+.check_bullet5:
+    cmpq $1, 112(%r15)
+    jne .done
+    movq %r15, %rdi
+    addq $96, %rdi
+    call check_single_bullet_collision
+    testl %eax, %eax
+    jnz .hit_detected
+    jmp .done
+
+.hit_detected:
+    movq $0, 16(%rdi)
+    movq $1, %rax
+    jmp .done
+
+.done:
+    popq %r15
+    popq %r14
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+
+#The bullet knows where it is at all times by knowing where it is not
+#Basically check if the bullet is within the bounds of the target
+check_single_bullet_collision:
+    #TODO: change literal values to constants
+
+    # Check if bullet_x + bullet_width < target_x
+    movq (%rdi), %rax
+    addq $2, %rax 
+    cmpq %r14, %rax
+    movq $0, %rax
+    jl .no_hit
+
+    # Check if bullet_x > target_x + target_width
+    movq %r14, %rax
+    addq %r12, %rax
+    cmpq (%rdi), %rax
+    movq $0, %rax
+    jl .no_hit
+
+    # Check if bullet_y + bullet_height < target_y
+    movq 8(%rdi), %rax
+    addq $14, %rax
+    cmpq %r13, %rax
+    movq $0, %rax
+    jl .no_hit
+
+    # Check if bullet_y > target_y + target_height
+    movq %r13, %rax
+    addq %r12, %rax
+    cmpq 8(%rdi), %rax
+    movq $0, %rax
+    jl .no_hit
+
+    movl $1, %eax  # Hit detected
+.no_hit:
     ret
 
