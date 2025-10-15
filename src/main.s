@@ -7,6 +7,7 @@
 .extern bullet_update
 .extern bullet_shoot
 .extern handle_input
+.extern check_bullet_at_pos
 
 
 # enemy functions
@@ -191,6 +192,14 @@ update_game:
     leaq flea(%rip), %rdx
     leaq grid(%rip), %rcx
     call update_enemies
+    
+    #Check bullet-enemy collision(pos left corner and width)
+    // leaq bullets(%rip), %rdi
+    // movq $200, %rsi # enemy_x
+    // movq $300, %rdx # enemy_y
+    // movq $100, %rcx # enemy_width
+    // call check_bullet_at_pos
+    #rax if there is a hit, increase score and reset enemy
 
 .update_done:
     popq %rbp
