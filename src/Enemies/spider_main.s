@@ -5,11 +5,11 @@
 
 
 # Constants
-.equ SCREEN_WIDTH, 480
-.equ SCREEN_HEIGHT, 512
-.equ X_SPEED, 1                    # has to be a factor of 16
-.equ Y_SPEED, 2                  # has to be a factor of 16
-.equ SPIDER_SIZE, 16             # size of spider
+.equ SCREEN_WIDTH, 960
+.equ SCREEN_HEIGHT, 1024
+.equ X_SPEED, 2                    # has to be a factor of 32
+.equ Y_SPEED, 4                  # has to be a factor of 32
+.equ SPIDER_SIZE, 32             # size of spider
 
 .equ PINK, 0xFFFFC0CB
 
@@ -24,8 +24,8 @@ init_spider:
 
 
     # Initialize spider position and state
-    movl $100, %eax               # x position
-    movl $450, %ecx               # y position
+    movl $200, %eax               # x position
+    movl $900, %ecx               # y position
 
     # store in structure
     movl %eax,  (%rdi)          # set x position

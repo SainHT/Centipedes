@@ -9,7 +9,7 @@
 .equ BROWN, 0x8B4513FF
 
 .section .data
-radius_8: .float 8.0
+radius_16: .float 16.0
 
 .section .text
 # %rdi - grid pointer
@@ -78,16 +78,16 @@ draw_grid:
 
     # draw mushroom (circle)
     movq %r13, %rax
-    imulq $16, %rax             # x = col * 16
-    addq $8, %rax               # center x
+    imulq $32, %rax             # x = col * 32
+    addq $16, %rax              # center x
     movl %eax, %edi             # x in rdi
 
     movq %r12, %rax
-    imulq $16, %rax             # y = row * 16
-    addq $8, %rax               # center y
+    imulq $32, %rax             # y = row * 32
+    addq $16, %rax              # center y
     movl %eax, %esi             # y in rsi
 
-    movss radius_8(%rip), %xmm0 # radius = 8.0 (float in xmm0)
+    movss radius_16(%rip), %xmm0 # radius = 16.0 (float in xmm0)
     movl $BROWN, %edx           # color in edx
 
     call DrawCircle
