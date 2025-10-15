@@ -34,13 +34,17 @@ init_flea:
 
 # %rdi = pointer to flea structure
 # %rsi = pointer to grid
+# %rdx = pointer to bullets
 update_flea:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
+    pushq %r12
 
     # add logic to move flee down the screen & spawn mushrooms
     movq %rdi, %rbx             # flea pointer in %rbx
+    movq %rdx, %r12             # grid pointer in %r12
+
     # check state
     movb 8(%rbx), %al           # load state
     cmpb $1, %al
@@ -74,7 +78,7 @@ update_flea:
 
     movb (%rsi, %rax), %cl   # load grid cell
     cmpb $0, %cl             # check if empty
-    jne .update_flea_end     # if not empty, skip
+    jne .check_flea_bullet_collision     # if not empty, skip
 
     pushq %rsi
     pushq %rax
@@ -83,13 +87,30 @@ update_flea:
     movq $50, %rsi
     call GetRandomValue     # 1 in 50 chance
     cmpq $0, %rax
-    jne .update_flea_end
+    jne .check_flea_bullet_collision
 
     popq %rax
     popq %rsi
     movb $3, (%rsi, %rax)  # set grid cell to mushroom (3)
 
+.check_flea_bullet_collision:
+    # Check for bullet collision
+    movq %r12, %rdi             # bullets pointer in %rdi
+    xor %rsi, %rsi
+    movl  (%rbx), %esi          # get x position from segment
+    xor %rdx, %rdx
+    movl 4(%rbx), %edx          # get y position from segment   
+    movq $32, %rcx              # size in %rcx
+
+    call check_bullet_at_pos
+    cmpq $1, %rax
+    jne .update_flea_end     # if no collision, skip destroy
+
+    # Set flea state to dead
+    movb $0, 8(%rbx)            # set state to dead
+
 .update_flea_end:
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp

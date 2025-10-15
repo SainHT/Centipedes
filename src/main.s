@@ -70,11 +70,6 @@ bullets:
 bullet_index: .quad 0
 bullet_cooldown: .quad 0
 
-enemy_x: .long 100
-enemy_y: .long 100
-enemy_width: .long 30
-enemy_height: .long 30
-
 # centipede always has the first and last segment dead (in order to simplify split logic)
 centipede: .zero 360    # memory placeholder for centipede segments
 
@@ -191,6 +186,7 @@ update_game:
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
     leaq grid(%rip), %rcx
+    leaq bullets(%rip), %r8
     call update_enemies
     
     #Check bullet-enemy collision(pos left corner and width)

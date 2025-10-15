@@ -35,14 +35,14 @@ init_enemies:
     call init_centipede
 
     # Initialize spider
-    movq %rbx, %rdi
+    //movq %rbx, %rdi
     // movq $200, %rsi               # x position
     // movq $900, %rdx               # y position
     // call init_spider
 
     # Initialize flea
-    movq %r12, %rdi
-    // movq $200, %rsi               # x position
+    //movq %r12, %rdi
+    // movq $320, %rsi               # x position
     // movq $0, %rdx                 # y position
     // call init_flea
 
@@ -56,6 +56,7 @@ init_enemies:
 # %rsi = pointer to spider
 # %rdx = pointer to flea
 # %rcx = pointer to grid
+# %r8  = pointer to bullets
 update_enemies:
     pushq %rbp
     movq %rsp, %rbp
@@ -63,11 +64,13 @@ update_enemies:
     pushq %r12
     pushq %r13
     pushq %r14
+    pushq %r15
 
-    movq %rsi, %rbx             # spider pointer in rbx
-    movq %rdx, %r12             # flea pointer in r12
-    movq %rcx, %r13             # grid pointer in r13
-    movq %rdi, %r14             # centipede pointer in r14
+    movq %rsi, %rbx             # spider pointer in %rbx
+    movq %rdx, %r12             # flea pointer in %r12
+    movq %rcx, %r13             # grid pointer in %r13
+    movq %rdi, %r14             # centipede pointer in %r14
+    movq %r8,  %r15             # bullets pointer in %r15
 
 
     movb 8(%r12), %al           # load flea state
@@ -116,18 +119,22 @@ update_enemies:
     # Update centipede
     movq %r14, %rdi
     movq %r13, %rsi
+    movq %r15, %rdx
     call update_centipede
     
     # Update spider
     movq %rbx, %rdi
     movq %r13, %rsi
+    movq %r15, %rdx
     call update_spider
 
     # Update flea
     movq %r12, %rdi
     movq %r13, %rsi
+    movq %r15, %rdx
     call update_flea
 
+    popq %r15
     popq %r14
     popq %r13
     popq %r12
