@@ -3,15 +3,8 @@
 .global update_flea
 .global draw_flea
 
-
-# Constants
-.equ SCREEN_WIDTH, 960
-.equ SCREEN_HEIGHT, 1024
-.equ GRID_COLS, 30
-.equ SPEED, 8                   # has to be a factor of 32
-.equ FLEA_SIZE, 32              # size of flea
-
-.equ CYAN, 0xFF00FFFF
+# Include constants
+.include "../../src/constants.s"
 
 # Fleas drop vertically and disappear upon touching the bottom of the screen, 
 # occasionally leaving a trail of mushrooms in their path 
@@ -19,18 +12,21 @@
 # they are worth 200 points each and take two shots to destroy.
 
 # %rdi = pointer to flea structure
+# %rsi = x_coord
+# %rdx = y_coord
 init_flea:
     pushq %rbp
     movq %rsp, %rbp
 
 
     # Initialize flea position and state
-    movl $0, %eax                # x position
-    movl $0, %ecx                # y position
+    movl %esi, %eax                # x position
+    movl %edx, %ecx                # y position
 
     # store in structure
-    movl %eax, (%rdi)            # set x position
-    movl %ecx, 4(%rdi)           # set y position
+    movl %eax,  (%rdi)             # set x position
+    movl %ecx, 4(%rdi)             # set y position
+    //movb $1,   8(%rdi)             # state (1 = alive)
 
     movq %rbp, %rsp
     popq %rbp
@@ -55,6 +51,10 @@ draw_flea:
     pushq %rbx
 
     movq %rdi, %rbx             # flea pointer in %rbx
+    # check state
+    movb 8(%rbx), %al           # load state
+    cmpb $1, %al
+    jne .draw_flea_end        # if not alive, skip update
 
     # Load flea
     movl  (%rbx), %edi          # load x position to rdi
@@ -64,6 +64,7 @@ draw_flea:
     movl $CYAN, %r8d            # color
     call DrawRectangle
 
+.draw_flea_end:
     popq %rbx
     movq %rbp, %rsp
     popq %rbp

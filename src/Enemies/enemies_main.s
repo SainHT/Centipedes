@@ -15,6 +15,9 @@
 .extern update_flea
 .extern draw_flea
 
+# Include constants
+.include "../../src/constants.s"
+
 # %rdi = pointer to centipede
 # %rsi = pointer to spider
 # %rdx = pointer to flea
@@ -28,15 +31,20 @@ init_enemies:
     movq %rdx, %r12             # flea pointer in r12
 
     # Initialize centipede
+    movq $480, %rsi               # x position
     call init_centipede
 
     # Initialize spider
     movq %rbx, %rdi
-    call init_spider
+    // movq $200, %rsi               # x position
+    // movq $900, %rdx               # y position
+    // call init_spider
 
     # Initialize flea
     movq %r12, %rdi
-    call init_flea
+    // movq $200, %rsi               # x position
+    // movq $0, %rdx                 # y position
+    // call init_flea
 
     popq %r12
     popq %rbx
@@ -54,15 +62,61 @@ update_enemies:
     pushq %rbx
     pushq %r12
     pushq %r13
+    pushq %r14
 
     movq %rsi, %rbx             # spider pointer in rbx
     movq %rdx, %r12             # flea pointer in r12
     movq %rcx, %r13             # grid pointer in r13
+    movq %rdi, %r14             # centipede pointer in r14
 
+
+    movb 8(%r12), %al           # load flea state
+    cmpb $1, %al
+    je .spider_check            # if alive skip
+
+    # Random chance to spawn flea if none exists
+    movq $1, %rdi
+    movq $FLEA_SPAWN_CHANCE, %rsi
+    call GetRandomValue
+    cmpq $1, %rax
+    jne .spider_check
+
+    # spawn flea at random x position at top of screen
+    movq $0, %rdi
+    movq $SCREEN_WIDTH, %rsi
+    call GetRandomValue
+    movl %eax, %esi               # x position
+    movq $0, %rdx                 # y position
+    movq %r12, %rdi               # flea pointer
+    call init_flea
+
+.spider_check:
+    movb 9(%rbx), %al            # load spider state
+    cmpb $1, %al
+    je .update_enemies_logic     # if alive skip
+
+    # Random chance to spawn spider if none exists
+    movq $1, %rdi
+    movq $SPIDER_SPAWN_CHANCE, %rsi
+    call GetRandomValue
+    cmpq $1, %rax
+    jne .update_enemies_logic
+
+    # spawn spider at random y position at left of screen
+    movq $800, %rdi
+    movq $SCREEN_HEIGHT - 32, %rsi
+    call GetRandomValue
+    movl %eax, %edx               # y position
+    movq $1, %rsi                 # x position
+    movq %rbx, %rdi               # spider pointer
+    call init_spider
+
+.update_enemies_logic:
     # Update centipede
+    movq %r14, %rdi
     movq %r13, %rsi
     call update_centipede
-
+    
     # Update spider
     movq %rbx, %rdi
     movq %r13, %rsi
@@ -73,6 +127,7 @@ update_enemies:
     movq %r13, %rsi
     call update_flea
 
+    popq %r14
     popq %r13
     popq %r12
     popq %rbx

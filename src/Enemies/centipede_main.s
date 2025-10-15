@@ -2,21 +2,19 @@
 .global init_centipede
 .global update_centipede
 
-# Constants
-.equ SCREEN_WIDTH, 960
-.equ SCREEN_HEIGHT, 1024
-.equ GRID_COLS, 30
-.equ SPEED, 8                   # has to be a factor of 32
-.equ MAX_SEGMENTS, 13           # maximum segments in a centipede
-
+# Include constants
+.include "../../src/constants.s"
 
 # %rdi = pointer to centipede structure
+# %rsi = x_coord
 init_centipede:
     pushq %rbp
     movq %rsp, %rbp
     push %rbx
+    push %r12
 
     movq %rdi, %rbx             # centipede pointer in %rbx
+    movq %rsi, %r12             # x position in %r12
 
     # Initialize centipede segments and positions
     movq $11, %rdi
@@ -38,7 +36,7 @@ init_centipede:
     # move X position based on index
     movl $32, %eax
     imull %r8d, %eax           # %rax = 32 * index
-    addl $480, %eax            # starting X position offset
+    addl %r12d, %eax            # starting X position offset
 
     # Set initial position and state
     movl %eax, (%rdi)          # set x position
@@ -58,6 +56,7 @@ init_centipede:
     leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
     movb $0, 11(%rdi)          # state (1 = alive)
 
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp

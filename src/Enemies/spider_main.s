@@ -3,29 +3,23 @@
 .global update_spider
 .global draw_spider
 
-
-# Constants
-.equ SCREEN_WIDTH, 960
-.equ SCREEN_HEIGHT, 1024
-.equ X_SPEED, 1                    # has to be a factor of 32
-.equ Y_SPEED, 2                  # has to be a factor of 32
-.equ SPIDER_SIZE, 32             # size of spider
-
-.equ PINK, 0xFFFFC0CB
-
+# Include constants
+.include "../../src/constants.s"
 
 # Spiders move across the player area in a zig-zag pattern and (eat some of the mushrooms); 
 # they are worth 300, 600, or 900 points depending on the range they are shot from.
 
 # %rdi = pointer to spider structure
+# %rsi = x_coord
+# %rdx = y_coord
 init_spider:
     pushq %rbp
     movq %rsp, %rbp
 
 
     # Initialize spider position and state
-    movl $200, %eax               # x position
-    movl $900, %ecx               # y position
+    movl %esi, %eax               # x position
+    movl %edx, %ecx               # y position
 
     # store in structure
     movl %eax,  (%rdi)          # set x position

@@ -2,11 +2,8 @@
 .section .text
 .global handle_input
 
-.equ KEY_UP, 265
-.equ KEY_DOWN, 264
-.equ KEY_LEFT, 263
-.equ KEY_RIGHT, 262
-
+# Include constants
+.include "../../src/constants.s"
 
 #.global handle_input
 # Handle player input

@@ -2,11 +2,8 @@
 .global generate_grid
 .global draw_grid
 
-.equ GRID_ROWS, 30
-.equ GRID_COLS, 30
-.equ MUSHROOMS, 50
-
-.equ BROWN, 0x8B4513FF
+# Include constants
+.include "../../src/constants.s"
 
 .section .data
 radius_16: .float 16.0

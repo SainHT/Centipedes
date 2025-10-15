@@ -29,22 +29,8 @@
 
 .extern GetRandomValue
 
-# Constants
-.equ SCREEN_WIDTH, 960
-.equ SCREEN_HEIGHT, 1024
-
-
-.equ BULLET_WIDTH, 4
-.equ BULLET_HEIGHT, 28
-.equ BULLET_SPEED, 20
-.equ BULLET_COOLDOWN, 13
-
-# Color constants (RGBA format)
-.equ BLACK, 0xFF000000
-.equ WHITE, 0xFFFFFFFF
-.equ GREEN, 0xFF00FF00
-.equ RED, 0xFFFF0000
-.equ BULLET_COLOR, 0xFFFFFF00
+# Include constants
+.include "../../src/constants.s"
 
 .section .data
 window_title: .asciz "Centipedes"
