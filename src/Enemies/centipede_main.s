@@ -2,24 +2,22 @@
 .global init_centipede
 .global update_centipede
 
-# Constants
-.equ SCREEN_WIDTH, 480
-.equ SCREEN_HEIGHT, 512
-.equ GRID_COLS, 30
-.equ SPEED, 4                   # has to be a factor of 16
-.equ MAX_SEGMENTS, 15           # maximum segments in a centipede
-
+# Include constants
+.include "../../src/constants.s"
 
 # %rdi = pointer to centipede structure
+# %rsi = x_coord
 init_centipede:
     pushq %rbp
     movq %rsp, %rbp
     push %rbx
+    push %r12
 
     movq %rdi, %rbx             # centipede pointer in %rbx
+    movq %rsi, %r12             # x position in %r12
 
     # Initialize centipede segments and positions
-    movq $7, %rdi
+    movq $11, %rdi
     movq $MAX_SEGMENTS, %rsi
     call GetRandomValue         # random starting number of segments
 
@@ -36,14 +34,14 @@ init_centipede:
     leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
 
     # move X position based on index
-    movl $16, %eax
-    imull %r8d, %eax           # %rax = 16 * index
-    addl $240, %eax            # starting X position offset
+    movl $32, %eax
+    imull %r8d, %eax           # %rax = 32 * index
+    addl %r12d, %eax            # starting X position offset
 
     # Set initial position and state
     movl %eax, (%rdi)          # set x position
     movl $0,  4(%rdi)          # y position
-    movb $16, 8(%rdi)          # size
+    movb $32, 8(%rdi)          # size
     movb $1,  9(%rdi)          # direction (1 = right)
     movb $1, 10(%rdi)          # absolute direction (1 = down)
     movb $1, 11(%rdi)          # state (1 = alive)
@@ -58,6 +56,7 @@ init_centipede:
     leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
     movb $0, 11(%rdi)          # state (1 = alive)
 
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp
@@ -69,6 +68,7 @@ update_centipede:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
+    pushq %r12
     
     movq %rdi, %rbx              # centipede pointer in %rbx
     movq $0, %r12                # index %r12
@@ -86,6 +86,7 @@ update_centipede:
     cmpq $MAX_SEGMENTS, %r12     # repeat for all segments
     jl .update_centipede_loop
 
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp
@@ -109,22 +110,22 @@ update_segment:
     movsbl 10(%rdi), %r9d       # load absolute direction to %r9 (sign-extended)
 
 .change_col:
-    # Check if y-coordinate is divisible by 16 (every 4th movement)
+    # Check if y-coordinate is divisible by 32 (every 4th movement)
     movl %ecx, %eax
-    andl $15, %eax              # y % 16
+    andl $31, %eax              # y % 32
     cmpl $0, %eax
-    jne .update_position_y      # if not divisible by 16, skip obstacle check
+    jne .update_position_y      # if not divisible by 32, skip obstacle check
 
-    # Check if position is divisible by 16 (every 4th movement)
+    # Check if position is divisible by 32 (every 4th movement)
     movl %edx, %eax
-    andl $15, %eax              # x % 16
+    andl $31, %eax              # x % 32
     cmpl $0, %eax
-    jne .update_position_x      # if not divisible by 16, skip obstacle check
+    jne .update_position_x      # if not divisible by 32, skip obstacle check
 
 .check_obstacle:
     # test tile in front
-    movl $16, %eax
-    imull %r8d, %eax            # %eax = 16 * direction [-1; 1]
+    movl $32, %eax
+    imull %r8d, %eax            # %eax = 32 * direction [-1; 1]
     addl %eax, %edx             # test x position in front
     
     # Check for screen bounds
@@ -136,11 +137,11 @@ update_segment:
     # Check for mushroom collision
     xor %rax, %rax
     movl %ecx, %eax             
-    shr $4, %eax                # x / 16 -> row index
+    shr $5, %eax                # y / 32 -> row index
     
     xor %rbx, %rbx
     movl %edx, %ebx             
-    shr $4, %ebx                # y / 16 -> col index
+    shr $5, %ebx                # x / 32 -> col index
 
     imull $GRID_COLS, %eax      # row * GRID_COLS
     addl %ebx, %eax             # index = row * GRID_COLS + col
@@ -152,8 +153,8 @@ update_segment:
 
 .change_row:
     # when we hit an obstacle or edge, move by row and reverse direction
-    movl $16, %eax              
-    imull %r9d, %eax            # %eax = 16 * absolute direction [-1; 1]
+    movl $32, %eax              
+    imull %r9d, %eax            # %eax = 32 * absolute direction [-1; 1]
     addl %eax, %ecx             # move by row
     negl %r8d                   # reverse horizontal direction
     
@@ -167,9 +168,9 @@ update_segment:
 
 .switch_abs_direction:
     negl %r9d                   # reverse absolute direction
-    movl $32, %eax              
-    imull %r9d, %eax            # %eax = 32 * absolute direction [-1; 1]
-    addl %eax, %ecx             # move by 2 rows (32 since we moved 16 already and we want to go opposite direction)
+    movl $64, %eax              
+    imull %r9d, %eax            # %eax = 64 * absolute direction [-1; 1]
+    addl %eax, %ecx             # move by 2 rows (64 since we moved 32 already and we want to go opposite direction)
     movl (%rdi), %edx           # load x position to %rdx
     jmp .update_position_y
 
@@ -197,6 +198,38 @@ update_segment:
 
 .update_segment_end:
     popq %rbx
+    movq %rbp, %rsp
+    popq %rbp
+    ret
+
+
+
+# %rdi = pointer to segment
+# %rsi = pointer to grid
+destroy_segment:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movb $0, 11(%rdi)           # set state to dead
+
+    xor %rax, %rax
+    movl 8(%rdi), %eax          # get y position
+    shr $5, %eax                # y / 32 -> row index
+
+    movl 0(%rdi), %edx          # get x position
+    shr $5, %edx                # x / 32 -> col index
+
+    imull $GRID_COLS, %eax      # row * GRID_COLS
+    addl %edx, %eax             # index = row * GRID_COLS + col
+
+    movb $3, (%rsi,%rax)        # set grid cell to 3 (mushroom)
+
+    # //TODO: move all segments behind to last true grid position (not sure if needed)
+
+
+    # //TODO: if all segments are dead, respawn centipede 
+    # (each successive centipede is one segment shorter and accompanied by one detached head)
+
     movq %rbp, %rsp
     popq %rbp
     ret

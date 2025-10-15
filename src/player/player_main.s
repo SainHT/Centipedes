@@ -2,11 +2,8 @@
 .section .text
 .global handle_input
 
-.equ KEY_UP, 265
-.equ KEY_DOWN, 264
-.equ KEY_LEFT, 263
-.equ KEY_RIGHT, 262
-
+# Include constants
+.include "../../src/constants.s"
 
 #.global handle_input
 # Handle player input
@@ -113,9 +110,9 @@ check_boundaries:
 
 .check_top_boundary:
     movq 8(%r15), %rax
-    cmpq $0, %rax
+    cmpq $800, %rax
     jge .check_bottom_boundary
-    movq $0, %rax
+    movq $800, %rax
     movq %rax, 8(%r15)
 
 .check_bottom_boundary:
