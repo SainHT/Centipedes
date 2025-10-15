@@ -83,8 +83,9 @@ update_enemies:
 
     # spawn flea at random x position at top of screen
     movq $0, %rdi
-    movq $SCREEN_WIDTH, %rsi
+    movq $29, %rsi
     call GetRandomValue
+    shll $5, %eax                 # multiply by 32 for grid
     movl %eax, %esi               # x position
     movq $0, %rdx                 # y position
     movq %r12, %rdi               # flea pointer

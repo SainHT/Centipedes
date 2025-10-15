@@ -61,15 +61,12 @@
 .equ Y_SPEED, 2                 # Spider Y movement speed (must be factor of 32)
 .equ SPIDER_SIZE, 32            # Size of spider
 
-# Flea specific  
+# Flea specific
+.equ FLEA_SPEED, 4              # Flea Y movement speed (must be factor of 32)
 .equ FLEA_SIZE, 32              # Size of flea
 
 # ==============================================================================
 # SPAWN PROBABILITY CONSTANTS
 # ==============================================================================
-.equ FLEA_SPAWN_CHANCE, 2000    # 1 in 2000 chance each frame to spawn flea
-.equ SPIDER_SPAWN_CHANCE, 5     # 1 in 5 chance each frame to spawn spider
-
-# ==============================================================================
-# End of constants file
-# ==============================================================================
+.equ FLEA_SPAWN_CHANCE, 2000   # 1 in 2000 chance each frame to spawn flea
+.equ SPIDER_SPAWN_CHANCE, 50     # 1 in 50b chance each frame to spawn spider

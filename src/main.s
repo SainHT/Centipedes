@@ -103,9 +103,6 @@ score: .long 0
 speed: .long 6
 
 .section .text
-// .include "../../src/player/player_main.s"
-// .include "../../src/bullet/bullet_main.s"
-
 main:
     pushq %rbp
     movq %rsp, %rbp
@@ -188,78 +185,15 @@ update_game:
     pushq %rbp
     movq %rsp, %rbp
 
-    # Update centipede
+    # Update enemies
     leaq centipede(%rip), %rdi
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
     leaq grid(%rip), %rcx
     call update_enemies
-    
-    # Move enemy
-    addl $2, enemy_x(%rip)
-    
-    # Check if enemy is off screen
-    movl enemy_x(%rip), %eax
-    cmpl $SCREEN_WIDTH, %eax
-    jle .check_collision
-    
-    # Reset enemy position
-    movl enemy_width(%rip), %eax
-    negl %eax
-    movl %eax, enemy_x(%rip)
-    
-    # Random Y position (simplified)
-    movl $100, enemy_y(%rip)
-    
-.check_collision:
-    call check_player_enemy_collision
-    testl %eax, %eax
-    jz .update_done
-    
-    # Collision detected - update score
-    addl $10, score(%rip)
-    
-    # Reset enemy
-    movl enemy_width(%rip), %eax
-    negl %eax
-    movl %eax, enemy_x(%rip)
 
 .update_done:
     popq %rbp
-    ret
-
-# Check collision between player and enemy
-# Returns: 1 if collision, 0 if no collision
-check_player_enemy_collision:
-    # Check if player_x + player_width < enemy_x
-    movl player(%rip), %eax
-    addl player+16(%rip), %eax
-    cmpl enemy_x(%rip), %eax
-    jl .no_collision
-    
-    # Check if player_x > enemy_x + enemy_width
-    movl enemy_x(%rip), %eax
-    addl enemy_width(%rip), %eax
-    cmpl player(%rip), %eax
-    jl .no_collision
-    
-    # Check Y axis
-    movl player+8(%rip), %eax
-    addl player+16(%rip), %eax
-    cmpl enemy_y(%rip), %eax
-    jl .no_collision
-    
-    movl enemy_y(%rip), %eax
-    addl enemy_height(%rip), %eax
-    cmpl player+8(%rip), %eax
-    jl .no_collision
-    
-    # Collision detected
-    movl $1, %eax
-    ret
-    
-.no_collision:
-    movl $0, %eax
     ret
 
 # Render the frame
@@ -317,17 +251,6 @@ render_frame:
     addq $24, bullet_index(%rip)
     cmpq $120, bullet_index(%rip) # 24*5=120
     jl .render_bullets_loop
-
-    # Draw enemy
-    movl enemy_x(%rip), %edi
-    movl enemy_y(%rip), %esi
-    movl enemy_width(%rip), %edx
-    movl enemy_height(%rip), %ecx
-    movl $RED, %r8d
-    call DrawRectangle
-    
-    # Draw text (simplified - you'd need proper text rendering)
-    # This requires more complex string formatting in assembly
     
     call EndDrawing
     
