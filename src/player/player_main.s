@@ -113,9 +113,9 @@ check_boundaries:
 
 .check_top_boundary:
     movq 8(%r15), %rax
-    cmpq $0, %rax
+    cmpq $800, %rax
     jge .check_bottom_boundary
-    movq $0, %rax
+    movq $800, %rax
     movq %rax, 8(%r15)
 
 .check_bottom_boundary:
