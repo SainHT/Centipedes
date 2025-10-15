@@ -30,13 +30,13 @@
 .extern GetRandomValue
 
 # Constants
-.equ SCREEN_WIDTH, 480
-.equ SCREEN_HEIGHT, 512
+.equ SCREEN_WIDTH, 960
+.equ SCREEN_HEIGHT, 1024
 
 
-.equ BULLET_WIDTH, 2
-.equ BULLET_HEIGHT, 14
-.equ BULLET_SPEED, 10
+.equ BULLET_WIDTH, 4
+.equ BULLET_HEIGHT, 28
+.equ BULLET_SPEED, 20
 .equ BULLET_COOLDOWN, 13
 
 # Color constants (RGBA format)
@@ -54,9 +54,9 @@ instructions: .asciz "Use arrow keys to move"
 # Game state variables
 grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of mushroom)
 player:
-    .quad 200 #x
-    .quad 200 #y
-    .quad 16 #size
+    .quad 400 #x
+    .quad 400 #y
+    .quad 32 #size
 
 bullets:
     #bullet 1
@@ -85,17 +85,17 @@ bullet_cooldown: .quad 0
 
 enemy_x: .long 100
 enemy_y: .long 100
-enemy_width: .long 15
-enemy_height: .long 15
+enemy_width: .long 30
+enemy_height: .long 30
 
 # centipede always has the first and last segment dead (in order to simplify split logic)
 centipede: .zero 360    # memory placeholder for centipede segments
 
 # Structure for a centipede segment
 # Segment is 12 bytes:
-#  .long 240           x position (4 bytes)
+#  .long 480           x position (4 bytes)
 #  .long 0             y position (4 bytes)
-#  .byte 16            size (max 127) (1 byte)
+#  .byte 32            size (max 127) (1 byte)
 #  .byte 1             direction (1 for right, -1 for left) (1 byte)
 #  .byte 1             absolute direction (1 for down, -1 for up) (1 byte)
 #  .byte 1             state (1 for alive, 0 for dead) (1 byte)
@@ -114,7 +114,7 @@ spider:
     .byte 0              # state (0 for dead, 1 for alive)
 
 score: .long 0
-speed: .long 3
+speed: .long 6
 
 .section .text
 // .include "../../src/player/player_main.s"

@@ -5,11 +5,11 @@
 
 
 # Constants
-.equ SCREEN_WIDTH, 480
-.equ SCREEN_HEIGHT, 512
-.equ X_SPEED, 1                    # has to be a factor of 16
-.equ Y_SPEED, 2                  # has to be a factor of 16
-.equ SPIDER_SIZE, 16             # size of spider
+.equ SCREEN_WIDTH, 960
+.equ SCREEN_HEIGHT, 1024
+.equ X_SPEED, 1                    # has to be a factor of 32
+.equ Y_SPEED, 2                  # has to be a factor of 32
+.equ SPIDER_SIZE, 32             # size of spider
 
 .equ PINK, 0xFFFFC0CB
 
@@ -24,8 +24,8 @@ init_spider:
 
 
     # Initialize spider position and state
-    movl $100, %eax               # x position
-    movl $450, %ecx               # y position
+    movl $200, %eax               # x position
+    movl $900, %ecx               # y position
 
     # store in structure
     movl %eax,  (%rdi)          # set x position
@@ -94,7 +94,7 @@ update_spider:
 
 # Check horizontal bounds & reverse direction (up <-> down)
 .horizontal_bounds:
-    cmpl $432, %edi                # y >= 0
+    cmpl $800, %edi                # y >= 800
     jle .reverse_horizontal
     movl $SCREEN_HEIGHT - SPIDER_SIZE, %esi
     cmpl %esi, %edi              # y < SCREEN_HEIGHT

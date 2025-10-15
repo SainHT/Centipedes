@@ -5,11 +5,11 @@
 
 
 # Constants
-.equ SCREEN_WIDTH, 480
-.equ SCREEN_HEIGHT, 512
+.equ SCREEN_WIDTH, 960
+.equ SCREEN_HEIGHT, 1024
 .equ GRID_COLS, 30
-.equ SPEED, 4                   # has to be a factor of 16
-.equ FLEA_SIZE, 16              # size of flea
+.equ SPEED, 8                   # has to be a factor of 32
+.equ FLEA_SIZE, 32              # size of flea
 
 .equ CYAN, 0xFF00FFFF
 
