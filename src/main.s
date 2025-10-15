@@ -104,13 +104,14 @@ centipede: .zero 360    # memory placeholder for centipede segments
 flea:
     .long 0              # x position
     .long 0              # y position
+    .byte 0              # state (0 for dead, 1 for alive)
 
 # spider
 spider:
     .long 0              # x position
     .long 0              # y position
-    .byte 0              # direction (00 for leftdown, 01 for rightdown, 10 for leftup, 11 for rightup)
-
+    .byte 0              # direction (00 for leftdown, 01 for rightdown, 11 for rightup, 10 for leftup)
+    .byte 0              # state (0 for dead, 1 for alive)
 
 score: .long 0
 speed: .long 3

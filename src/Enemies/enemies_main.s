@@ -65,6 +65,7 @@ update_enemies:
 
     # Update spider
     movq %rbx, %rdi
+    movq %r13, %rsi
     call update_spider
 
     # Update flea
@@ -96,11 +97,11 @@ draw_enemies:
 
     # Draw spider
     movq %rbx, %rdi
-    //call draw_spider
+    call draw_spider
 
     # Draw flea
     movq %r12, %rdi
-    //call draw_flea
+    call draw_flea
 
     popq %r12
     popq %rbx
