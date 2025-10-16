@@ -107,8 +107,8 @@ init_centipede:
 
     # Set initial position and state
     movl %r12d,  (%rdi)        # set x position
-    movl $0,    4(%rdi)        # y position
-    movb $8,   8(%rdi)        # speed
+    movl $-32,  4(%rdi)        # y position
+    movb $8,    8(%rdi)        # speed
     movb %r9b,  9(%rdi)        # direction
     movb $1,    10(%rdi)       # absolute direction
     movb $1,    11(%rdi)       # state
