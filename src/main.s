@@ -4,10 +4,13 @@
 # Grid generation function
 .extern generate_grid
 .extern draw_grid
+
+# Player functions
 .extern bullet_update
 .extern bullet_shoot
-.extern handle_input
 .extern check_bullet_at_pos
+.extern handle_input
+.extern check_player_at_pos
 
 
 # enemy functions
@@ -43,7 +46,7 @@ grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of m
 player:
     .quad 400 #x
     .quad 400 #y
-    .quad 32 #size
+    .quad 20 #size
 
 bullets:
     #bullet 1
@@ -137,15 +140,10 @@ game_loop:
     # Handle input
     leaq player(%rip), %rdi
     movq speed(%rip), %rsi
-    movq $SCREEN_WIDTH, %rdx
-    movq $SCREEN_HEIGHT, %rcx
     call handle_input
 
     # Update bullets
     leaq bullets(%rip), %rdi
-    movq $BULLET_WIDTH, %rsi
-    movq $BULLET_HEIGHT, %rdx
-    movq $BULLET_SPEED, %rcx
     call bullet_update
 
     # Shoot a bullet every BULLET_COOLDOWN frames
@@ -158,6 +156,7 @@ game_loop:
     shrq $1, %rsi
     addq player(%rip), %rsi  # Player X position
     movq player+8(%rip), %rdx  # Player Y position
+    subq $BULLET_HEIGHT, %rdx  # Bullet appears above the player
     call bullet_shoot
     cmpq $0, %rax
     je .skip_shoot
@@ -200,6 +199,17 @@ update_game:
     // movq $100, %rcx # enemy_width
     // call check_bullet_at_pos
     #rax if there is a hit, increase score and reset enemy
+
+    // leaq player(%rip), %rdi
+    // movq $100, %rsi  # enemy x
+    // movq $900, %rdx      # enemy y
+    // movq $50, %rcx    # enemy size
+    // call check_player_at_pos
+    // cmpq $0, %rax
+    // je .update_done
+    // # Player hit, reset position and decrease score
+    // movq $800, player(%rip)
+    // movq $900, player+8(%rip)
 
 .update_done:
     popq %rbp

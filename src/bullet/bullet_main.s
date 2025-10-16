@@ -15,20 +15,14 @@ bullet_update:
     pushq %rbp
     movq %rsp, %rbp
 
-    pushq %r12
-    pushq %r13
-    pushq %r14
     pushq %r15
 
     movq %rdi, %r15  # bullets base address in %r15
-    movq %rsi, %r14  # bullet width in %r14
-    movq %rdx, %r13  # bullet height in %r13
-    movq %rcx, %r12  # bullet_speed in %r12
     
 .bullet1:
     cmpq $0, 16(%r15)
     je .bullet2
-    subq %r12, 8(%r15)
+    subq $BULLET_SPEED, 8(%r15)
 
     cmpq $0, 8(%r15)
     jge .bullet2
@@ -36,7 +30,7 @@ bullet_update:
 .bullet2:
     cmpq $0, 40(%r15)
     je .bullet3
-    subq %r12, 32(%r15)
+    subq $BULLET_SPEED, 32(%r15)
 
     cmpq $0, 32(%r15)
     jge .bullet3
@@ -44,7 +38,7 @@ bullet_update:
 .bullet3:
     cmpq $0, 64(%r15)
     je .bullet4
-    subq %r12, 56(%r15)
+    subq $BULLET_SPEED, 56(%r15)
 
     cmpq $0, 56(%r15)
     jge .bullet4
@@ -52,7 +46,7 @@ bullet_update:
 .bullet4:
     cmpq $0, 88(%r15)
     je .bullet5
-    subq %r12, 80(%r15)
+    subq $BULLET_SPEED, 80(%r15)
 
     cmpq $0, 80(%r15)
     jge .bullet5
@@ -60,7 +54,7 @@ bullet_update:
 .bullet5:
     cmpq $0, 112(%r15)
     je .bullet_update_done
-    subq %r12, 104(%r15)
+    subq $BULLET_SPEED, 104(%r15)
 
     cmpq $0, 104(%r15)
     jge .bullet_update_done
@@ -68,9 +62,6 @@ bullet_update:
 
 .bullet_update_done:
     popq %r15
-    popq %r14
-    popq %r13
-    popq %r12
     popq %rbp
     ret
 
@@ -80,7 +71,6 @@ bullet_shoot:
     pushq %rbp
     movq %rsp, %rbp
 
-    pushq %r12
     pushq %r13
     pushq %r14
     pushq %r15
@@ -143,9 +133,10 @@ bullet1_shoot:
     popq %r15
     popq %r14
     popq %r13
-    popq %r12
     popq %rbp
     ret
+
+
 
 check_bullet_at_pos:
     pushq %rbp
@@ -225,11 +216,9 @@ check_bullet_at_pos:
 #The bullet knows where it is at all times by knowing where it is not
 #Basically check if the bullet is within the bounds of the target
 check_single_bullet_collision:
-    #TODO: change literal values to constants
-
     # Check if bullet_x + bullet_width < target_x
     movq (%rdi), %rax
-    addq $2, %rax 
+    addq $BULLET_WIDTH, %rax
     cmpq %r14, %rax
     movq $0, %rax
     jl .no_hit
@@ -243,7 +232,7 @@ check_single_bullet_collision:
 
     # Check if bullet_y + bullet_height < target_y
     movq 8(%rdi), %rax
-    addq $14, %rax
+    addq $BULLET_HEIGHT, %rax
     cmpq %r13, %rax
     movq $0, %rax
     jl .no_hit
