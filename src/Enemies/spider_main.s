@@ -32,14 +32,22 @@ init_spider:
     ret
 
 # %rdi = pointer to spider structure
-# %rsi = pointer to grid
+# %rsi = pointer to grid (not yet used)
+# %rdx = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_spider:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
+    pushq %r12
+    pushq %r13
 
     # add logic to move spider in zig-zag
     movq %rdi, %rbx             # spider pointer in %rbx
+    movq %rdx, %r12             # bullets pointer in %r12
+
+    xor %r13, %r13              # score in %r13
 
     # check state
     movb 9(%rbx), %al           # load state
@@ -104,8 +112,29 @@ update_spider:
     movl %eax,  (%rbx)          # store updated x position
     movl %edi, 4(%rbx)          # store updated y position
     movb %dl,  8(%rbx)          # store updated direction
+
+.check_spider_bullet_collision:
+    # Check for bullet collision
+    movq %r12, %rdi             # bullets pointer in %rdi
+    xor %rsi, %rsi
+    movl  (%rbx), %esi          # get x position from segment
+    xor %rdx, %rdx
+    movl 4(%rbx), %edx          # get y position from segment   
+    movq $32, %rcx              # size in %rcx
+
+    call check_bullet_at_pos
+    cmpq $1, %rax
+    jne .update_spider_end     # if no collision, skip destroy
+
+    # Set spider state to dead
+    movb $0, 9(%rbx)            # set state to dead
+    movq $600, %r13             # score for spider
     
 .update_spider_end:
+    movq %r13, %rax             # return score in %rax
+    
+    popq %r13
+    popq %r12
     popq %rbx
     movq %rbp, %rsp
     popq %rbp

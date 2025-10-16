@@ -21,6 +21,7 @@
 # %rdi = pointer to centipede
 # %rsi = pointer to spider
 # %rdx = pointer to flea
+# %rcx = level
 init_enemies:
     pushq %rbp
     movq %rsp, %rbp
@@ -31,18 +32,18 @@ init_enemies:
     movq %rdx, %r12             # flea pointer in r12
 
     # Initialize centipede
-    movq $480, %rsi               # x position
+    movq $0, %rsi               # x position
     call init_centipede
 
     # Initialize spider
-    movq %rbx, %rdi
+    //movq %rbx, %rdi
     // movq $200, %rsi               # x position
     // movq $900, %rdx               # y position
     // call init_spider
 
     # Initialize flea
-    movq %r12, %rdi
-    // movq $200, %rsi               # x position
+    //movq %r12, %rdi
+    // movq $320, %rsi               # x position
     // movq $0, %rdx                 # y position
     // call init_flea
 
@@ -56,6 +57,9 @@ init_enemies:
 # %rsi = pointer to spider
 # %rdx = pointer to flea
 # %rcx = pointer to grid
+# %r8  = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_enemies:
     pushq %rbp
     movq %rsp, %rbp
@@ -63,11 +67,13 @@ update_enemies:
     pushq %r12
     pushq %r13
     pushq %r14
+    pushq %r15
 
-    movq %rsi, %rbx             # spider pointer in rbx
-    movq %rdx, %r12             # flea pointer in r12
-    movq %rcx, %r13             # grid pointer in r13
-    movq %rdi, %r14             # centipede pointer in r14
+    movq %rsi, %rbx             # spider pointer in %rbx
+    movq %rdx, %r12             # flea pointer in %r12
+    movq %rcx, %r13             # grid pointer in %r13
+    movq %rdi, %r14             # centipede pointer in %r14
+    movq %r8,  %r15             # bullets pointer in %r15
 
 
     movb 8(%r12), %al           # load flea state
@@ -113,21 +119,51 @@ update_enemies:
     call init_spider
 
 .update_enemies_logic:
+    xorq %rax, %rax            # clear score
+    pushq %rax
     # Update centipede
     movq %r14, %rdi
     movq %r13, %rsi
+    movq %r15, %rdx
     call update_centipede
+    addl %eax, (%rsp)          # add score from centipede
     
     # Update spider
     movq %rbx, %rdi
     movq %r13, %rsi
+    movq %r15, %rdx
     call update_spider
+    addl %eax, (%rsp)          # add score from spider
 
     # Update flea
     movq %r12, %rdi
     movq %r13, %rsi
+    movq %r15, %rdx
     call update_flea
+    addl %eax, (%rsp)          # add score from flea
 
+# Check if centipede is alive
+    xorq %rdx, %rdx            # any_segment_alive boolean in %rdx
+    movq $0, %r10              # index %r10
+.update_centipede_alive_loop:
+    # Calculate segment pointer
+    movq %r10, %rax
+    imulq $12, %rax            # segment size is 12 bytes
+    leaq (%r14, %rax), %rax    # current segment pointer
+
+    orb 11(%rax), %dl          # if segment alive -> true
+    incq %r10
+    cmpq $30, %r10             # repeat for all segments
+    jl .update_centipede_alive_loop
+
+    xorq %rdi, %rdi
+    movb %dl, %dil             # move boolean to %rdi (second output)
+
+    # Update total score
+    popq %rax
+
+.update_enemies_end:
+    popq %r15
     popq %r14
     popq %r13
     popq %r12

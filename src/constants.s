@@ -10,6 +10,7 @@
 # ==============================================================================
 .equ SCREEN_WIDTH, 960
 .equ SCREEN_HEIGHT, 1024
+.equ RESOLUTION, 32
 
 # ==============================================================================
 # GRID CONSTANTS
@@ -40,8 +41,10 @@
 .equ MAX_BULLETS, 5
 
 # ==============================================================================
-# PLAYER INPUT CONSTANTS
+# PLAYER CONSTANTS
 # ==============================================================================
+.equ PLAYER_SPEED, 6
+
 .equ KEY_UP, 265
 .equ KEY_DOWN, 264
 .equ KEY_LEFT, 263
@@ -49,10 +52,8 @@
 .equ KEY_SPACE, 32
 
 # ==============================================================================
-# ENEMY MOVEMENT CONSTANTS
+# ENEMY CONSTANTS
 # ==============================================================================
-.equ SPEED, 8                   # General movement speed (must be factor of 32)
-
 # Centipede specific
 .equ MAX_SEGMENTS, 13           # Maximum segments in a centipede
 
@@ -65,8 +66,6 @@
 .equ FLEA_SPEED, 4              # Flea Y movement speed (must be factor of 32)
 .equ FLEA_SIZE, 32              # Size of flea
 
-# ==============================================================================
-# SPAWN PROBABILITY CONSTANTS
-# ==============================================================================
-.equ FLEA_SPAWN_CHANCE, 2000   # 1 in 2000 chance each frame to spawn flea
-.equ SPIDER_SPAWN_CHANCE, 50     # 1 in 50b chance each frame to spawn spider
+# Spawn chance
+.equ FLEA_SPAWN_CHANCE, 2000    # 1 in 2000 chance each frame to spawn flea
+.equ SPIDER_SPAWN_CHANCE, 50    # 1 in 50 chance each frame to spawn spider
