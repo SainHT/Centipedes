@@ -287,11 +287,28 @@ destroy_segment:
     movl (%rbx), %eax           # get x position
     shr $5, %eax                # align to 32
     shl $5, %eax                # align to 32
+    cmpl %eax, (%rbx)
+    je .y_adjust
     movl %eax, (%rbx)           # set x position
+
+    cmpb $-1, 9(%rbx)          # check direction
+    jne .y_adjust
+    movl (%rbx), %eax          # get x position
+    addl $32, %eax              # move right
+    movl %eax, (%rbx)          # set x position
     
+.y_adjust:
     movl 4(%rbx), %eax          # get y position
     shr $5, %eax                # align to 32
     shl $5, %eax                # align to 32
+    cmpl %eax, 4(%rbx)
+    je .move_segments_loop
+    movl %eax, 4(%rbx)          # set y position
+
+    cmpb $1, 9(%rbx)            # check direction
+    jne .move_segments_loop
+    movl 4(%rbx), %eax          # get y position
+    addl $32, %eax              # move down
     movl %eax, 4(%rbx)          # set y position
 
     jmp .move_segments_loop
