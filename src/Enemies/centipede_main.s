@@ -341,7 +341,7 @@ destroy_segment:
     imull $GRID_COLS, %eax      # row * GRID_COLS
     addl %edx, %eax             # index = row * GRID_COLS + col
 
-    movb $3, (%rsi,%rax)        # set grid cell to 3 (mushroom)
+    movb $4, (%rsi,%rax)        # set grid cell to 4 (mushroom)
 
     # Return all prev segments to last %32 position
     movq %rdi, %rbx

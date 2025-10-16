@@ -37,9 +37,9 @@ generate_grid:
     
     # set grid cell to 1 (mushroom)
     movb (%rbx,%rcx), %al
-    cmpb $3, %al
+    cmpb $4, %al
     je .generate_mushrooms_loop # if already a mushroom, try again
-    movb $3, (%rbx,%rcx)
+    movb $4, (%rbx,%rcx)
 
     decq %r12
     jnz .generate_mushrooms_loop
