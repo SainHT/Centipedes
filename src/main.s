@@ -1,21 +1,25 @@
 .section .text
 .global main
 
-# Grid generation function
+# Grid generation
 .extern generate_grid
 .extern draw_grid
+
+# Input handling
 .extern bullet_update
 .extern bullet_shoot
 .extern handle_input
+
+# Collisions
 .extern check_bullet_at_pos
+.extern bullet_mushroom_collision
 
-
-# enemy functions
+# Enemy
 .extern init_enemies
 .extern update_enemies
 .extern draw_enemies
 
-# External raylib functions (System V x86-64 calling convention)
+# External raylib
 .extern InitWindow
 .extern WindowShouldClose
 .extern BeginDrawing
@@ -183,6 +187,12 @@ game_exit:
 update_game:
     pushq %rbp
     movq %rsp, %rbp
+
+    # Bullet-Mushroom collision
+    leaq bullets(%rip), %rdi
+    leaq grid(%rip), %rsi
+    call bullet_mushroom_collision
+    addl %eax, score(%rip)      # add score from mushroom collisions
 
     # Update enemies
     leaq centipede(%rip), %rdi

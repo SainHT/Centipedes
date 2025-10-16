@@ -1,6 +1,7 @@
 .section .text
 .global generate_grid
 .global draw_grid
+.global bullet_mushroom_collision
 
 # Include constants
 .include "../../src/constants.s"
@@ -43,6 +44,70 @@ generate_grid:
     decq %r12
     jnz .generate_mushrooms_loop
 
+    popq %r12
+    popq %rbx
+    movq %rbp, %rsp
+    popq %rbp
+    ret
+
+
+# %rdi - pointer to bullets
+# %rsi - pointer to grid
+bullet_mushroom_collision:
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %rbx
+    pushq %r12
+    pushq %r13
+
+     movq %rdi, %rbx             # bullets pointer in %rbx
+     movq %rsi, %r12             # grid pointer in %r12
+     xorq %r13, %r13             # score
+
+     movq $0, %rdi               # bullet index
+.bullet_collision_loop:
+    movq %rdi, %rax
+    imulq $24, %rax             # each bullet is 24 byte
+    cmpq $0, 16(%rbx, %rax)     # check if active
+    je .next_bullet
+
+    movq (%rbx, %rax), %rsi       # bullet x position
+    shrq $5, %rsi                 # divide by 32 to get grid col
+
+
+    movq 8(%rbx, %rax), %rdx      # bullet y position
+    shrq $5, %rdx                 # divide by 32 to get grid row
+
+    movq %rdx, %rax
+    imulq $GRID_COLS, %rax
+    addq %rsi, %rax               # index = row * GRID_COLS + col
+
+    movb (%r12, %rax), %cl        # load grid cell
+    cmpb $0, %cl                  # check if mushroom
+    je .next_bullet               # if not, skip
+
+    # decrease mushroom health
+    decb (%r12, %rax)            # decrease mushroom health
+    addq %rax, %r12
+
+    # deactivate bullet
+    movq %rdi, %rax
+    imulq $24, %rax
+    movq $0, 16(%rbx, %rax)      # set active to 0
+
+    cmpb $0, (%r12)              # check if mushroom is dead
+    jne .next_bullet             # if not dead, skip score
+    addq $10, %r13               # increase score by 10
+
+.next_bullet:
+    incq %rdi
+    cmpq $MAX_BULLETS, %rdi
+    jl .bullet_collision_loop
+
+    xorq %rax, %rax
+    movq %r13, %rax             # return score in %rax
+
+    popq %r13
     popq %r12
     popq %rbx
     movq %rbp, %rsp
