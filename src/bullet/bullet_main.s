@@ -137,7 +137,10 @@ bullet1_shoot:
     ret
 
 
-
+# %rdi = pointer to bullet
+# %rsi = x position to check
+# %rdx = y position to check
+# %rcx = width of enemy
 check_bullet_at_pos:
     pushq %rbp
     movq %rsp, %rbp
@@ -210,6 +213,7 @@ check_bullet_at_pos:
     popq %r14
     popq %r13
     popq %r12
+    movq %rbp, %rsp
     popq %rbp
     ret
 

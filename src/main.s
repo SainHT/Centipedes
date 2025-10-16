@@ -26,6 +26,7 @@
 .extern ClearBackground
 .extern DrawCircle
 .extern DrawRectangle
+.extern TextFormat
 .extern DrawText
 .extern CloseWindow
 .extern SetTargetFPS
@@ -38,7 +39,7 @@
 
 .section .data
 window_title: .asciz "Centipedes"
-score_text: .asciz "Score: %d"
+score_text: .asciz "Score: %8i"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
@@ -47,6 +48,8 @@ player:
     .quad 400 #x
     .quad 400 #y
     .quad 20 #size
+
+score: .long 0
 
 bullets:
     #bullet 1
@@ -73,11 +76,8 @@ bullets:
 bullet_index: .quad 0
 bullet_cooldown: .quad 0
 
-enemy_x: .long 100
-enemy_y: .long 100
-enemy_width: .long 30
-enemy_height: .long 30
 
+level: .long 0           # current level (centipede splitting based on level)
 # centipede always has the first and last segment dead (in order to simplify split logic)
 centipede: .zero 360    # memory placeholder for centipede segments
 
@@ -85,7 +85,7 @@ centipede: .zero 360    # memory placeholder for centipede segments
 # Segment is 12 bytes:
 #  .long 480           x position (4 bytes)
 #  .long 0             y position (4 bytes)
-#  .byte 32            size (max 127) (1 byte)
+#  .byte 32            speed (max 127) (1 byte)
 #  .byte 1             direction (1 for right, -1 for left) (1 byte)
 #  .byte 1             absolute direction (1 for down, -1 for up) (1 byte)
 #  .byte 1             state (1 for alive, 0 for dead) (1 byte)
@@ -102,9 +102,6 @@ spider:
     .long 0              # y position
     .byte 0              # direction (00 for leftdown, 01 for rightdown, 11 for rightup, 10 for leftup)
     .byte 0              # state (0 for dead, 1 for alive)
-
-score: .long 0
-speed: .long 6
 
 .section .text
 main:
@@ -129,6 +126,7 @@ main:
     leaq centipede(%rip), %rdi
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
+    movl level(%rip), %ecx
     call init_enemies
 
 game_loop:
@@ -190,7 +188,23 @@ update_game:
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
     leaq grid(%rip), %rcx
+    leaq bullets(%rip), %r8
     call update_enemies
+    addl %eax, score(%rip)      # add score from enemies
+
+    # Check if level complete
+    cmpq $1, %rdi
+    je .update_done             # centipede alive, continue
+
+    # Level Complete
+    addl $1, level(%rip)       # increase level
+    # //TODO: Redo grid (one segment shorter, one head split)
+    leaq centipede(%rip), %rdi
+    leaq spider(%rip), %rsi
+    leaq flea(%rip), %rdx
+    movl level(%rip), %ecx
+    call init_enemies
+
     
     #Check bullet-enemy collision(pos left corner and width)
     // leaq bullets(%rip), %rdi
@@ -270,7 +284,19 @@ render_frame:
     addq $24, bullet_index(%rip)
     cmpq $120, bullet_index(%rip) # 24*5=120
     jl .render_bullets_loop
-    
+
+    # Draw score
+    leaq score_text(%rip), %rdi
+    movl score(%rip), %esi
+    call TextFormat
+
+    movq %rax, %rdi              # formatted score string
+    movl $10, %esi               # x position
+    movl $10, %edx               # y position
+    movl $20, %ecx               # font size
+    movl $WHITE, %r8d            # color
+    call DrawText
+
     call EndDrawing
     
     popq %rbp
