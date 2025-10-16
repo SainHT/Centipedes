@@ -7,16 +7,33 @@
 
 # %rdi = pointer to centipede structure
 # %rsi = x_coord
+# %rcx= level
 init_centipede:
     pushq %rbp
     movq %rsp, %rbp
-    push %rbx
-    push %r12
+    pushq %rbx
+    pushq %r12
+    pushq %r13
 
     movq %rdi, %rbx             # centipede pointer in %rbx
     movq %rsi, %r12             # x position in %r12
+   
+    xorq %r13, %r13
+    movl %ecx, %r13d             # level in %r13
 
+    # random direction
+    movq $0, %rdi
+    movq $1, %rsi
+    call GetRandomValue
+    andq $1, %rax               # direction 0 or 1
+    cmpq $0, %rax
+    jne .init_centipede_loop
+    movq $-1, %rax              # direction -1 (left)
+    
+.init_centipede_loop:
+    movq %rax, %r9               # direction in %r9
     # Initialize centipede segments and positions
+    xorq %rax, %rax             
     movq $11, %rdi
     movq $MAX_SEGMENTS, %rsi
     call GetRandomValue         # random starting number of segments
@@ -26,6 +43,7 @@ init_centipede:
 
     # Initialize each segment
     movq %rax, %rcx            # number of segments in %rcx
+    subq %r13, %rcx            # reduce by level
     movq $1, %r8               # index in %r8
 .init_segment_loop:
     # Calculate segment pointer
@@ -33,18 +51,18 @@ init_centipede:
     imulq $12, %rax            # segment = 12 bytes
     leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
 
-    # move X position based on index
-    movl $32, %eax
-    imull %r8d, %eax           # %rax = 32 * index
-    addl %r12d, %eax            # starting X position offset
+    # move y position based on index
+    movl $-32, %eax
+    imull %r8d, %eax           # %rax = -32 * index
+    addl %r12d, %eax           # starting y position
 
     # Set initial position and state
-    movl %eax, (%rdi)          # set x position
-    movl $0,  4(%rdi)          # y position
-    movb $32, 8(%rdi)          # size
-    movb $1,  9(%rdi)          # direction (1 = right)
-    movb $1, 10(%rdi)          # absolute direction (1 = down)
-    movb $1, 11(%rdi)          # state (1 = alive)
+    movl $480,  (%rdi)         # set x position
+    movl %eax, 4(%rdi)         # y position
+    movb $8,   8(%rdi)          # speed
+    movb %r9b, 9(%rdi)         # direction
+    movb $1,  10(%rdi)         # absolute direction
+    movb $1,  11(%rdi)         # state
 
     incq %r8
     cmpq %rcx, %r8
@@ -56,6 +74,52 @@ init_centipede:
     leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
     movb $0, 11(%rdi)          # state (1 = alive)
 
+    # Detached heads (amount = level)
+    addq %r8, %r13
+.detached_loop:
+    cmpq %r13, %r8
+    jge .init_centipede_end    # loop all detached heads
+
+    # random direction
+    movq $0, %rdi
+    movq $1, %rsi
+    call GetRandomValue
+    andq $1, %rax               # direction 0 or 1
+    cmpq $0, %rax
+    jne .random_x
+    movq $-1, %rax              # direction -1 (left)
+
+.random_x:
+    movq %rax, %r9              # direction in %r9
+    # Random x position
+    movq $0, %rdi
+    movq $29, %rsi
+    call GetRandomValue
+    imulq $32, %rax             # x = random * 32
+    cmpq $480, %rax
+    je .random_x               # x != 480 (big centipede starting position)
+    movq %rax, %r12             # x position in %r12
+
+    # Calculate segment pointer
+    movq %r8, %rax
+    imulq $12, %rax            # segment = 12 bytes
+    leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
+
+    # Set initial position and state
+    movl %r12d,  (%rdi)        # set x position
+    movl $0,    4(%rdi)        # y position
+    movb $8,   8(%rdi)        # speed
+    movb %r9b,  9(%rdi)        # direction
+    movb $1,    10(%rdi)       # absolute direction
+    movb $1,    11(%rdi)       # state
+
+    movb $0, 23(%rdi)          # state of next segment (dead)
+
+    incq %r8
+    jmp .detached_loop
+
+.init_centipede_end:
+    popq %r13
     popq %r12
     popq %rbx
     movq %rbp, %rsp
@@ -89,7 +153,7 @@ update_centipede:
     addq %rax, %r13              # add score from segment
 
     incq %r12
-    cmpq $MAX_SEGMENTS, %r12     # repeat for all segments
+    cmpq $30, %r12               # repeat for all segments
     jl .update_centipede_loop
 
     movq %r13, %rax              # return total score in %rax
@@ -136,6 +200,10 @@ update_segment:
     andl $31, %eax              # y % 32
     cmpl $0, %eax
     jne .update_position_y      # if not divisible by 32, skip obstacle check
+
+    # Check if y-coordinate is less than 0 (startup case)
+    cmpl $0, %ecx
+    jl .update_position_y
 
     # Check if position is divisible by 32 (every 4th movement)
     movl %edx, %eax
@@ -198,7 +266,7 @@ update_segment:
 .update_position_y:
     # Update based on absolute direction (SPEED pixel movement speed)
     movl 4(%rbx), %ecx          # load y position to %rcx
-    movl $SPEED, %eax              
+    movzbl 8(%rbx), %eax          # speed to %eax
     imull %r9d, %eax            # %eax = SPEED * absolute direction [-1; 1]
     addl %eax, %ecx             # move by row
     jmp .store_position
@@ -206,7 +274,7 @@ update_segment:
 .update_position_x:
     # Update based on direction (SPEED pixel movement speed)
     movl (%rbx), %edx           # load x position to %rdx
-    movl $SPEED, %eax              
+    movzbl 8(%rbx), %eax          # speed to %eax
     imull %r8d, %eax            # %eax = SPEED * direction [-1; 1]
     addl %eax, %edx             # update x position
 
@@ -313,9 +381,6 @@ destroy_segment:
 
     jmp .move_segments_loop
 
-
-    # //TODO: if all segments are dead, respawn centipede 
-    # (each successive centipede is one segment shorter and accompanied by one detached head)
 .destroy_segments_end:
     popq %rbx
     movq %rbp, %rsp

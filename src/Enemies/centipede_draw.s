@@ -47,7 +47,7 @@ draw_segment:
     # Load segment state
     movl (%rbx), %edi           # load x position to rdi
     movl 4(%rbx), %esi          # load y position to rsi
-    movzbl 8(%rbx), %edx        # load width to rdx
+    movl $32, %edx        # load width to rdx
     movl %edx, %ecx             # load height to rcx (square)
     movl $PURPLE, %r8d          # color
     call DrawRectangle

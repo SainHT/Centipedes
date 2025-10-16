@@ -10,6 +10,7 @@
 # ==============================================================================
 .equ SCREEN_WIDTH, 960
 .equ SCREEN_HEIGHT, 1024
+.equ RESOLUTION, 32
 
 # ==============================================================================
 # GRID CONSTANTS
@@ -53,8 +54,6 @@
 # ==============================================================================
 # ENEMY CONSTANTS
 # ==============================================================================
-.equ SPEED, 8                   # General movement speed (must be factor of 32)
-
 # Centipede specific
 .equ MAX_SEGMENTS, 13           # Maximum segments in a centipede
 

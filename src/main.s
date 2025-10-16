@@ -73,6 +73,8 @@ bullets:
 bullet_index: .quad 0
 bullet_cooldown: .quad 0
 
+
+level: .long 0           # current level (centipede splitting based on level)
 # centipede always has the first and last segment dead (in order to simplify split logic)
 centipede: .zero 360    # memory placeholder for centipede segments
 
@@ -80,7 +82,7 @@ centipede: .zero 360    # memory placeholder for centipede segments
 # Segment is 12 bytes:
 #  .long 480           x position (4 bytes)
 #  .long 0             y position (4 bytes)
-#  .byte 32            size (max 127) (1 byte)
+#  .byte 32            speed (max 127) (1 byte)
 #  .byte 1             direction (1 for right, -1 for left) (1 byte)
 #  .byte 1             absolute direction (1 for down, -1 for up) (1 byte)
 #  .byte 1             state (1 for alive, 0 for dead) (1 byte)
@@ -121,6 +123,7 @@ main:
     leaq centipede(%rip), %rdi
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
+    movl level(%rip), %ecx
     call init_enemies
 
 game_loop:
@@ -189,6 +192,20 @@ update_game:
     leaq bullets(%rip), %r8
     call update_enemies
     addl %eax, score(%rip)      # add score from enemies
+
+    # Check if level complete
+    cmpq $1, %rdi
+    je .update_done             # centipede alive, continue
+
+    # Level Complete
+    addl $1, level(%rip)       # increase level
+    # //TODO: Redo grid (one segment shorter, one head split)
+    leaq centipede(%rip), %rdi
+    leaq spider(%rip), %rsi
+    leaq flea(%rip), %rdx
+    movl level(%rip), %ecx
+    call init_enemies
+
     
     #Check bullet-enemy collision(pos left corner and width)
     // leaq bullets(%rip), %rdi
