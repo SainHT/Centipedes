@@ -23,6 +23,7 @@
 .extern ClearBackground
 .extern DrawCircle
 .extern DrawRectangle
+.extern TextFormat
 .extern DrawText
 .extern CloseWindow
 .extern SetTargetFPS
@@ -35,7 +36,7 @@
 
 .section .data
 window_title: .asciz "Centipedes"
-score_text: .asciz "Score: %d"
+score_text: .asciz "Score: %8i"
 instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
@@ -44,6 +45,8 @@ player:
     .quad 400 #x
     .quad 400 #y
     .quad 32 #size
+
+score: .long 0
 
 bullets:
     #bullet 1
@@ -95,9 +98,6 @@ spider:
     .byte 0              # direction (00 for leftdown, 01 for rightdown, 11 for rightup, 10 for leftup)
     .byte 0              # state (0 for dead, 1 for alive)
 
-score: .long 0
-speed: .long 6
-
 .section .text
 main:
     pushq %rbp
@@ -131,7 +131,7 @@ game_loop:
     
     # Handle input
     leaq player(%rip), %rdi
-    movq speed(%rip), %rsi
+    movq $PLAYER_SPEED, %rsi
     movq $SCREEN_WIDTH, %rdx
     movq $SCREEN_HEIGHT, %rcx
     call handle_input
@@ -188,6 +188,7 @@ update_game:
     leaq grid(%rip), %rcx
     leaq bullets(%rip), %r8
     call update_enemies
+    addl %eax, score(%rip)      # add score from enemies
     
     #Check bullet-enemy collision(pos left corner and width)
     // leaq bullets(%rip), %rdi
@@ -256,7 +257,19 @@ render_frame:
     addq $24, bullet_index(%rip)
     cmpq $120, bullet_index(%rip) # 24*5=120
     jl .render_bullets_loop
-    
+
+    # Draw score
+    leaq score_text(%rip), %rdi
+    movl score(%rip), %esi
+    call TextFormat
+
+    movq %rax, %rdi              # formatted score string
+    movl $10, %esi               # x position
+    movl $10, %edx               # y position
+    movl $20, %ecx               # font size
+    movl $WHITE, %r8d            # color
+    call DrawText
+
     call EndDrawing
     
     popq %rbp

@@ -35,15 +35,20 @@ init_flea:
 # %rdi = pointer to flea structure
 # %rsi = pointer to grid
 # %rdx = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_flea:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
     pushq %r12
+    pushq %r13
 
     # add logic to move flee down the screen & spawn mushrooms
     movq %rdi, %rbx             # flea pointer in %rbx
     movq %rdx, %r12             # grid pointer in %r12
+
+    xor %r13, %r13              # score in %r13
 
     # check state
     movb 8(%rbx), %al           # load state
@@ -94,6 +99,7 @@ update_flea:
     movb $3, (%rsi, %rax)  # set grid cell to mushroom (3)
 
 .check_flea_bullet_collision:
+    xorq %rax, %rax             # return score value
     # Check for bullet collision
     movq %r12, %rdi             # bullets pointer in %rdi
     xor %rsi, %rsi
@@ -108,8 +114,12 @@ update_flea:
 
     # Set flea state to dead
     movb $0, 8(%rbx)            # set state to dead
+    movq $200, %r13             # score for flea
 
 .update_flea_end:
+    movq %r13, %rax             # return score in %rax
+    
+    popq %r13
     popq %r12
     popq %rbx
     movq %rbp, %rsp

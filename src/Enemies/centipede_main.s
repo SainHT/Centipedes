@@ -65,12 +65,16 @@ init_centipede:
 # %rdi = pointer to centipede structure
 # %rsi = pointer to grid
 # %rdx = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_centipede:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
     pushq %r12
+    pushq %r13
     
+    xorq %r13, %r13              # score in %r13
     movq %rdi, %rbx              # centipede pointer in %rbx
     movq $0, %r12                # index %r12
 .update_centipede_loop:
@@ -82,11 +86,15 @@ update_centipede:
     
     # Update segment
     call update_segment
+    addq %rax, %r13              # add score from segment
 
     incq %r12
     cmpq $MAX_SEGMENTS, %r12     # repeat for all segments
     jl .update_centipede_loop
 
+    movq %r13, %rax              # return total score in %rax
+
+    popq %r13
     popq %r12
     popq %rbx
     movq %rbp, %rsp
@@ -96,6 +104,8 @@ update_centipede:
 # %rdi = pointer to segment
 # %rsi = pointer to grid
 # %rdx = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_segment:
     pushq %rbp
     movq %rsp, %rbp
@@ -106,7 +116,10 @@ update_segment:
     movq %rdi, %rbx             # segment pointer in %rbx
     movq %rsi, %r12             # grid pointer in %r12
     movq %rdx, %r13             # bullets pointer in %r13
-    
+
+    xorq %rax, %rax            # clear score
+    pushq %rax
+
     movb 11(%rbx), %al          # load alive state to %rax
     cmpb $0, %al
     je .update_segment_end      # if dead, skip update
@@ -221,8 +234,11 @@ update_segment:
     movq %rbx, %rdi             # segment pointer in %rdi
     movq %r12, %rsi             # grid pointer in %rsi
     call destroy_segment
+    # //TODO: score higher for head
+    addq $100, (%rsp)           # score for segment destroyed
 
 .update_segment_end:
+    popq %rax
     movq %rbx, %rdi
     movq %r12, %rsi
     movq %r13, %rdx

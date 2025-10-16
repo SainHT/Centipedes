@@ -34,15 +34,20 @@ init_spider:
 # %rdi = pointer to spider structure
 # %rsi = pointer to grid (not yet used)
 # %rdx = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_spider:
     pushq %rbp
     movq %rsp, %rbp
     pushq %rbx
     pushq %r12
+    pushq %r13
 
     # add logic to move spider in zig-zag
     movq %rdi, %rbx             # spider pointer in %rbx
     movq %rdx, %r12             # bullets pointer in %r12
+
+    xor %r13, %r13              # score in %r13
 
     # check state
     movb 9(%rbx), %al           # load state
@@ -123,8 +128,12 @@ update_spider:
 
     # Set spider state to dead
     movb $0, 9(%rbx)            # set state to dead
+    movq $600, %r13             # score for spider
     
 .update_spider_end:
+    movq %r13, %rax             # return score in %rax
+    
+    popq %r13
     popq %r12
     popq %rbx
     movq %rbp, %rsp

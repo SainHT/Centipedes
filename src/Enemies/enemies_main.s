@@ -57,6 +57,8 @@ init_enemies:
 # %rdx = pointer to flea
 # %rcx = pointer to grid
 # %r8  = pointer to bullets
+# --------------------------------------
+# %rax = score
 update_enemies:
     pushq %rbp
     movq %rsp, %rbp
@@ -116,23 +118,31 @@ update_enemies:
     call init_spider
 
 .update_enemies_logic:
+    xorq %rax, %rax            # clear score
+    pushq %rax
     # Update centipede
     movq %r14, %rdi
     movq %r13, %rsi
     movq %r15, %rdx
     call update_centipede
+    addl %eax, (%rsp)          # add score from centipede
     
     # Update spider
     movq %rbx, %rdi
     movq %r13, %rsi
     movq %r15, %rdx
     call update_spider
+    addl %eax, (%rsp)          # add score from spider
 
     # Update flea
     movq %r12, %rdi
     movq %r13, %rsi
     movq %r15, %rdx
     call update_flea
+    addl %eax, (%rsp)            # add score from flea
+
+    # Update total score
+    popq %rax
 
     popq %r15
     popq %r14
