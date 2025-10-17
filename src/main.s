@@ -209,7 +209,15 @@ update_game:
 
     # Level Complete
     addl $1, level(%rip)       # increase level
-    # //TODO: Redo grid (one segment shorter, one head split)
+
+    # Clear player area
+    leaq grid(%rip), %rdi
+    addq $840, %rdi             # offset to clear player area
+    movq $120, %rcx             # size of grid (iteration)
+    xorq %rax, %rax             # zero value
+    rep stosb                   # store to pointer from register
+
+    # Respawn centipede
     leaq centipede(%rip), %rdi
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
