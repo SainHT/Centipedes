@@ -16,11 +16,12 @@ handle_input:
     
     pushq %r15
     pushq %r14
-    // pushq %r13
+    pushq %r13
     // pushq %r12
 
     movq %rdi, %r15  # Save player pointer in %r15 for later use
     movq %rsi, %r14  # Save speed in %r14 for later use
+    movq %rdx, %r13  # Save grid pointer in %r13
     // movq %rdx, %r13  # Save screen width in %r13
     // movq %rcx, %r12  # Save screen height in %r12
 
@@ -67,14 +68,14 @@ handle_input:
 .input_done:
     # Boundary checking
     movq %r15, %rdi
-    // movq $SCREEN_WIDTH, %rsi
+    movq %r13, %rsi
     // movq $SCREEN_HEIGHT, %rdx
     call check_boundaries
 
 
     # Restore registers and return
     // popq %r12
-    // popq %r13
+    popq %r13
     popq %r14
     popq %r15
     popq %rbp
@@ -85,8 +86,10 @@ check_boundaries:
     pushq %rbp
     movq %rsp, %rbp
     pushq %r15
+    pushq %r14
 
     movq %rdi, %r15  # Player pointer in %r15
+    movq %rsi, %r14  # Grid pointer in %r14
 
     # Check left boundary
     movq (%r15), %rax
@@ -107,9 +110,9 @@ check_boundaries:
 
 .check_top_boundary:
     movq 8(%r15), %rax
-    cmpq $800, %rax
+    cmpq $PLAYER_UPPER_BOUNDARY, %rax
     jge .check_bottom_boundary
-    movq $800, %rax
+    movq $PLAYER_UPPER_BOUNDARY, %rax
     movq %rax, 8(%r15)
 
 .check_bottom_boundary:
@@ -122,6 +125,172 @@ check_boundaries:
     movq %rax, 8(%r15)
 
 .boundaries_done:
+.lucorner_check:
+#check if player collides with any mushrooms
+    #Look up if shroom at position left corner of player
+    movq %r14, %rdi      #grid pointer
+    movq (%r15), %rsi    #player x
+    movq 8(%r15), %rdx  #player y
+    call mushroom_at_pos
+   
+    cmpq $0, %rax
+    je .rucorner_check
+    #Handle x/y capping
+    #calculate distance x from grid cell left corner
+    movq (%r15), %rdi
+    movq (%r15), %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    subq %rax, %rdi
+    #calculate distance y from grid cell left corner
+    movq 8(%r15), %rsi
+    movq 8(%r15), %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    subq %rax, %rsi
+
+    cmpq %rdi, %rsi
+    jg .lucorner_cap_y
+    #cap x
+    movq $RESOLUTION, %rax
+    subq %rdi, %rax
+    addq %rax, (%r15)
+    jmp .rucorner_check
+
+.lucorner_cap_y:
+    #cap y
+    movq $RESOLUTION, %rax
+    subq %rsi, %rax
+    addq %rax, 8(%r15)
+
+.rucorner_check:
+    #Look up if shroom at position right corner of player
+    movq %r14, %rdi      #grid pointer
+    movq (%r15), %rsi    #player x
+    addq 16(%r15), %rsi  
+    movq 8(%r15), %rdx  #player y
+    call mushroom_at_pos
+
+    cmpq $0, %rax
+    je .ldcorner_check
+    #Handle x/y capping
+    #calculate distance x from grid cell left corner
+    movq (%r15), %rdi
+    addq 16(%r15), %rdi
+    movq %rdi, %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    addq $RESOLUTION, %rax
+    subq %rdi, %rax
+    movq %rax, %rdi
+    #calculate distance y from grid cell left corner
+    movq 8(%r15), %rsi
+    movq 8(%r15), %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    subq %rax, %rsi
+
+    cmpq %rdi, %rsi
+    jg .rucorner_cap_y
+    #cap x
+    movq $RESOLUTION, %rax
+    subq %rdi, %rax
+    subq %rax, (%r15)
+    jmp .ldcorner_check
+.rucorner_cap_y:
+    #cap y
+    movq $RESOLUTION, %rax
+    subq %rsi, %rax
+    addq %rax, 8(%r15)
+
+.ldcorner_check:
+#check if player collides with any mushrooms
+    #Look up if shroom at position left corner of player
+    movq %r14, %rdi      #grid pointer
+    movq (%r15), %rsi    #player x
+    movq 8(%r15), %rdx  #player y
+    addq 16(%r15), %rdx
+    call mushroom_at_pos
+   
+    cmpq $0, %rax
+    je .rdcorner_check
+    #Handle x/y capping
+    #calculate distance x from grid cell left corner
+    movq (%r15), %rdi
+    movq (%r15), %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    subq %rax, %rdi
+    #calculate distance y from grid cell left corner
+    movq 8(%r15), %rsi
+    addq 16(%r15), %rsi
+    movq %rsi, %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    addq $RESOLUTION, %rax
+    subq %rsi, %rax
+    movq %rax, %rsi
+
+    cmpq %rdi, %rsi
+    jg .ldcorner_cap_y
+    #cap x
+    movq $RESOLUTION, %rax
+    subq %rdi, %rax
+    addq %rax, (%r15)
+    jmp .rdcorner_check
+
+.ldcorner_cap_y:
+    #cap y
+    movq $RESOLUTION, %rax
+    subq %rsi, %rax
+    subq %rax, 8(%r15)
+
+.rdcorner_check:
+    #Look up if shroom at position right corner of player
+    movq %r14, %rdi      #grid pointer
+    movq (%r15), %rsi    #player x
+    addq 16(%r15), %rsi  
+    movq 8(%r15), %rdx  
+    addq 16(%r15), %rdx
+    call mushroom_at_pos
+
+    cmpq $0, %rax
+    je .shroom_checks_done
+    #Handle x/y capping
+    #calculate distance x from grid cell left corner
+    movq (%r15), %rdi
+    addq 16(%r15), %rdi
+    movq %rdi, %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    addq $RESOLUTION, %rax
+    subq %rdi, %rax
+    movq %rax, %rdi
+    #calculate distance y from grid cell left corner
+    movq 8(%r15), %rsi
+    addq 16(%r15), %rsi
+    movq %rsi, %rax
+    shrq $5, %rax
+    shlq $5, %rax
+    addq $RESOLUTION, %rax
+    subq %rsi, %rax
+    movq %rax, %rsi
+
+    cmpq %rdi, %rsi
+    jg .rdcorner_cap_y
+    #cap x
+    movq $RESOLUTION, %rax
+    subq %rdi, %rax
+    subq %rax, (%r15)
+    jmp .shroom_checks_done
+.rdcorner_cap_y:
+    #cap y
+    movq $RESOLUTION, %rax
+    subq %rsi, %rax
+    subq %rax, 8(%r15)
+
+.shroom_checks_done:
+    popq %r14
     popq %r15
     popq %rbp
     ret
@@ -186,5 +355,44 @@ check_player_at_pos:
     popq %r12
     
     movq %rbp, %rsp
+    popq %rbp
+    ret
+
+
+# %rdi = pointer to mushroom array
+# %rsi = x position to check
+# %rdx = y position to check
+mushroom_at_pos:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    pushq %r15
+    pushq %r14
+    pushq %r13
+
+    movq %rdi, %r15  # Mushroom array pointer in %r15
+    movq %rsi, %r14  # X position in %r14
+    movq %rdx, %r13  # Y position in %r13
+
+    shrq $5, %r14   # Divide x by 32 to get grid index
+    shrq $5, %r13   # Divide y by 32 to get grid index
+
+    movq %r13, %rax
+    imulq $GRID_COLS, %rax
+    addq %r14, %rax  # rax = row * cols + col = index
+
+    movq %rax, %rdi  # Move index to rdi for array access
+    movb (%r15, %rdi), %al  # Load mushroom at index
+    cmpb $0, %al
+    movq $0, %rax    # No mushroom by default
+    je .no_mushroom
+
+    # Mushroom found
+    movq $1, %rax    # Mushroom exists
+
+.no_mushroom:
+    popq %r13
+    popq %r14
+    popq %r15
     popq %rbp
     ret

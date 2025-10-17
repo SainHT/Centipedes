@@ -141,6 +141,7 @@ game_loop:
     # Handle input
     leaq player(%rip), %rdi
     movq $PLAYER_SPEED, %rsi
+    leaq grid(%rip), %rdx
     call handle_input
 
     # Update bullets
