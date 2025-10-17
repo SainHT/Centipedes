@@ -29,6 +29,7 @@
 .equ BROWN, 0x8B4513FF
 .equ CYAN, 0xFF00FFFF
 .equ PINK, 0xFFFFC0CB
+.equ YELLOW, 0xFFFFFF00
 .equ BULLET_COLOR, 0xFFFFFF00
 
 # ==============================================================================
