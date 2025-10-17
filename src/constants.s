@@ -21,16 +21,17 @@
 .equ MUSHROOMS, 50
 
 # ==============================================================================
-# COLOR CONSTANTS (RGBA format)
+# COLOR CONSTANTS (ARGB)
 # ==============================================================================
-.equ BLACK, 0xFF000000
-.equ WHITE, 0xFFFFFFFF
-.equ GREEN, 0xFF00FF00
-.equ RED, 0xFFFF0000
-.equ BROWN, 0x8B4513FF
-.equ CYAN, 0xFFFFFF00
-.equ PINK, 0xFFFFC0CB
+.equ BLACK,  0xFF000000
+.equ WHITE,  0xFFFFFFFF
+.equ GREEN,  0xFF00FF00
+.equ RED,    0xFF0000FF
+.equ BROWN,  0xA0522DFF
 .equ YELLOW, 0xFF00FFFF
+.equ PINK,   0xFFFFC0CB
+.equ PURPLE, 0xFF800080
+.equ CYAN,   0xFFFFFF00
 .equ BULLET_COLOR, 0xFFFFFF00
 
 # ==============================================================================
@@ -61,8 +62,8 @@
 .equ MAX_SEGMENTS, 13           # Maximum segments in a centipede
 
 # Spider specific
-.equ X_SPEED, 1                 # Spider X movement speed (must be factor of 32)
-.equ Y_SPEED, 2                 # Spider Y movement speed (must be factor of 32)
+.equ X_SPEED, 2                 # Spider X movement speed (must be factor of 32)
+.equ Y_SPEED, 4                 # Spider Y movement speed (must be factor of 32)
 .equ SPIDER_SIZE, 32            # Size of spider
 
 # Flea specific

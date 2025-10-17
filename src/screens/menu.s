@@ -72,7 +72,7 @@ main_menu:
     movl $250, %esi               # x position
     movl $10, %edx               # y position
     movl $40, %ecx               # font size
-    movl $WHITE, %r8d            # color
+    movl $RED, %r8d            # color
     call DrawText
 
     # How to Play

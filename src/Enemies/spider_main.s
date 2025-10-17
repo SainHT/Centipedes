@@ -85,7 +85,8 @@ update_spider:
 .vertical_bounds:
     cmpl $0, %eax                # x >= 0
     jle .reverse_vertical
-    movl $SCREEN_WIDTH - SPIDER_SIZE, %esi
+    movl $SCREEN_WIDTH, %esi
+    subl $SPIDER_SIZE, %esi
     cmpl %esi, %eax             # x < SCREEN_WIDTH
     jge .reverse_vertical
     jmp .horizontal_bounds
@@ -98,7 +99,8 @@ update_spider:
 .horizontal_bounds:
     cmpl $800, %edi                # y >= 800
     jle .reverse_horizontal
-    movl $SCREEN_HEIGHT - SPIDER_SIZE, %esi
+    movl $SCREEN_HEIGHT, %esi
+    subl $SPIDER_SIZE, %esi
     cmpl %esi, %edi              # y < SCREEN_HEIGHT
     jge .reverse_horizontal
     jmp .update_location

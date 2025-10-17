@@ -25,8 +25,8 @@ game_over:
 
     call BeginDrawing
 
-    movl $BLACK, %edi
-    call ClearBackground
+    // movl $BLACK, %edi
+    // call ClearBackground
 
     # Draw "Game Over" text
     leaq game_over_text(%rip), %rdi
