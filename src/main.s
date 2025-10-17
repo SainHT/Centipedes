@@ -1,6 +1,10 @@
 .section .text
 .global main
 
+# Screens
+.extern main_menu
+.extern game_over
+
 # Grid generation
 .extern generate_grid
 .extern draw_grid
@@ -42,17 +46,17 @@
 .section .data
 window_title: .asciz "Centipedes"
 score_text: .asciz "Score: %8i"
-instructions: .asciz "Use arrow keys to move"
 
 # Game state variables
 grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of mushroom)
 player:
     .quad 400 # x
-    .quad 400 # y
+    .quad 800 # y
     .quad 20  # size
     .byte 3   # lives
 
 score: .long 0
+hi_score: .long 0
 
 bullets:
     #bullet 1
@@ -121,6 +125,15 @@ main:
     movl $60, %edi
     call SetTargetFPS
 
+.main_menu:
+
+    movl hi_score(%rip), %edi
+    leaq grid(%rip), %rsi
+    leaq centipede(%rip), %rdx
+    leaq bullets(%rip), %rcx
+    call main_menu
+
+.main_menu_skip:
     # Generate the grid with mushrooms
     leaq grid(%rip), %rdi
     call generate_grid
@@ -208,8 +221,33 @@ update_game:
     # Game over (0 lives)
     cmpb $0, 24(%rdi)
     jne .skip_level_reset
-    # //TODO: game over subroutine
-    call CloseWindow            # temp game over
+
+    # game over
+    movl hi_score(%rip), %edi
+    movl score(%rip), %esi
+    call game_over              # show game over screen
+    movl %eax, hi_score(%rip)   # update hi_score
+
+    # grid reset
+    leaq grid(%rip), %rdi
+    movq $960, %rcx             # size of grid (iteration)
+    xorq %rax, %rax             # zero value
+    rep stosb                   # store to pointer from register
+
+    # game state reset
+    movl $0,   score(%rip)      # score
+    movl $0,   level(%rip)      # level
+    movq $400, player(%rip)     # player x
+    movq $800, player+8(%rip)   # player y
+    movb $3,   player+24(%rip)  # player lives
+    # bullet reset
+    movq $0, bullets+16(%rip)   # bullet 1 inactive
+    movq $0, bullets+40(%rip)   # bullet 2 inactive
+    movq $0, bullets+64(%rip)   # bullet 3 inactive
+    movq $0, bullets+88(%rip)   # bullet 4 inactive
+    movq $0, bullets+112(%rip)  # bullet 5 inactive
+
+    jmp .main_menu         # restart game
 
 .bullet_collision:
     # Bullet-Mushroom collision
@@ -233,10 +271,10 @@ update_game:
     je .update_done             # centipede alive, continue
 
     # Level Complete
-    addl $1, level(%rip)       # increase level
+    addl $1, level(%rip)        # increase level
     cmpl $MAX_SEGMENTS, level(%rip)
     jl .skip_level_reset
-    movl $0, level(%rip)       # reset level after all segments are as heads
+    movl $0, level(%rip)        # reset level after all segments are as heads
 
 .skip_level_reset:
     # Clear player area
