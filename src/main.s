@@ -222,7 +222,10 @@ update_game:
     jne .skip_level_reset
 
     # game over
+    movl hi_score(%rip), %edi
+    movl score(%rip), %esi
     call game_over              # show game over screen
+    movl %eax, hi_score(%rip)   # update hi_score
 
     # grid reset
     leaq grid(%rip), %rdi
@@ -243,13 +246,7 @@ update_game:
     movq $0, bullets+88(%rip)   # bullet 4 inactive
     movq $0, bullets+112(%rip)  # bullet 5 inactive
 
-    movl score(%rip), %eax
-    cmpl hi_score(%rip), %eax   # score > hi_score
-    jle .main_menu_skip
-
-    movl %eax, hi_score(%rip)   # update hi_score
-
-    jmp .main_menu_skip         # restart game
+    jmp .main_menu         # restart game
 
 .bullet_collision:
     # Bullet-Mushroom collision

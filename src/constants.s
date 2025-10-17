@@ -27,9 +27,9 @@
 .equ GREEN, 0xFF00FF00
 .equ RED, 0xFFFF0000
 .equ BROWN, 0x8B4513FF
-.equ CYAN, 0xFF00FFFF
+.equ CYAN, 0xFFFFFF00
 .equ PINK, 0xFFFFC0CB
-.equ YELLOW, 0xFFFFFF00
+.equ YELLOW, 0xFF00FFFF
 .equ BULLET_COLOR, 0xFFFFFF00
 
 # ==============================================================================
@@ -51,6 +51,7 @@
 .equ KEY_LEFT, 263
 .equ KEY_RIGHT, 262
 .equ KEY_SPACE, 32
+.equ KEY_ENTER, 257
 
 # ==============================================================================
 # ENEMY CONSTANTS
