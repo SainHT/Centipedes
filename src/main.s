@@ -84,7 +84,7 @@ bullet_index: .quad 0
 bullet_cooldown: .quad 0
 
 
-level: .long 0           # current level (centipede splitting based on level)
+level: .quad 0           # current level (centipede splitting based on level)
 # centipede always has the first and last segment dead (in order to simplify split logic)
 centipede: .zero 360    # memory placeholder for centipede segments
 
@@ -267,7 +267,7 @@ update_game:
 
 
     # Check if level complete
-    cmpq $1, %rdi
+    cmpb $1, %dl
     je .update_done             # centipede alive, continue
 
     # Level Complete

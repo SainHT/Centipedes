@@ -28,14 +28,14 @@ player_enemy_collision:
     xorq %r15, %r15             # no collision
 
     # Centipede collision
-    movq %rbx, %rdi             # player pointer
     xorq %rsi, %rsi
     xorq %r9, %r9               # index
 .check_centipede_loop:
     movq %r9, %rax
     imulq $12, %rax              # segment = 12 bytes
-    leaq (%rbx,%rax), %r8       # current segment pointer in %r8
+    leaq (%r12,%rax), %r8       # current segment pointer in %r8
 
+    movq %rbx, %rdi             # player pointer
     xorq %rsi, %rsi
     movl 0(%r8), %esi           # segment x position
     xorq %rdx, %rdx

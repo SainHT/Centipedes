@@ -44,6 +44,14 @@ game_over:
     movl $WHITE, %r8d             # color
     call DrawText
 
+    # Draw continue prompt
+    leaq continue_text(%rip), %rdi
+    movl $280, %esi               # x position
+    movl $500, %edx               # y position
+    movl $20, %ecx                # font size
+    movl $WHITE, %r8d             # color
+    call DrawText
+
     # Draw final score
     leaq score_text(%rip), %rdi
     movl %r12d, %esi              # score
