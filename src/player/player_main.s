@@ -127,6 +127,12 @@ check_boundaries:
     ret
 
 
+# %rdi = pointer to player
+# %rsi = x position to check
+# %rdx = y position to check
+# %rcx = width of target area
+# --------------------------------------
+# %rax = 0 if no hit, 1 if hit
 check_player_at_pos:
     pushq %rbp
     movq %rsp, %rbp
@@ -178,5 +184,7 @@ check_player_at_pos:
     popq %r14
     popq %r13
     popq %r12
+    
+    movq %rbp, %rsp
     popq %rbp
     ret

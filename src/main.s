@@ -13,6 +13,7 @@
 # Collisions
 .extern check_bullet_at_pos
 .extern bullet_mushroom_collision
+.extern player_enemy_collision
 
 # Enemy
 .extern init_enemies
@@ -46,9 +47,10 @@ instructions: .asciz "Use arrow keys to move"
 # Game state variables
 grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of mushroom)
 player:
-    .quad 400 #x
-    .quad 400 #y
-    .quad 20 #size
+    .quad 400 # x
+    .quad 400 # y
+    .quad 20  # size
+    .byte 3   # lives
 
 score: .long 0
 
@@ -184,6 +186,31 @@ update_game:
     pushq %rbp
     movq %rsp, %rbp
 
+    # Check player collision
+    leaq player(%rip), %rdi
+    leaq centipede(%rip), %rsi
+    leaq spider(%rip), %rdx
+    leaq flea(%rip), %rcx
+    call player_enemy_collision
+    cmpl $0, %eax
+    je .bullet_collision
+
+    # Player hit
+    leaq player(%rip), %rdi
+    movq $400, (%rdi)
+    movq $800, 8(%rdi)
+    decb 24(%rdi)               # decrease lives
+
+    movb $0, flea+8(%rip)       # destroy flea
+    movb $0, spider+9(%rip)     # destroy spider
+
+    # Game over (0 lives)
+    cmpb $0, 24(%rdi)
+    jne .skip_level_reset
+    # //TODO: game over subroutine
+    call CloseWindow            # temp game over
+
+.bullet_collision:
     # Bullet-Mushroom collision
     leaq bullets(%rip), %rdi
     leaq grid(%rip), %rsi
@@ -198,6 +225,7 @@ update_game:
     leaq bullets(%rip), %r8
     call update_enemies
     addl %eax, score(%rip)      # add score from enemies
+
 
     # Check if level complete
     cmpq $1, %rdi

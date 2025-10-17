@@ -141,6 +141,8 @@ bullet1_shoot:
 # %rsi = x position to check
 # %rdx = y position to check
 # %rcx = width of enemy
+# --------------------------------------
+# %rax = 0 if no hit, 1 if hit
 check_bullet_at_pos:
     pushq %rbp
     movq %rsp, %rbp
