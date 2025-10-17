@@ -209,7 +209,11 @@ update_game:
 
     # Level Complete
     addl $1, level(%rip)       # increase level
+    cmpl $MAX_SEGMENTS, level(%rip)
+    jl .skip_level_reset
+    movl $0, level(%rip)       # reset level after all segments are as heads
 
+.skip_level_reset:
     # Clear player area
     leaq grid(%rip), %rdi
     addq $840, %rdi             # offset to clear player area
