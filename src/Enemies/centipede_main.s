@@ -302,8 +302,9 @@ update_segment:
     movq %rbx, %rdi             # segment pointer in %rdi
     movq %r12, %rsi             # grid pointer in %rsi
     call destroy_segment
-    # //TODO: score higher for head
-    addq $100, (%rsp)           # score for segment destroyed
+    # score higher for head (100 - head; 1 - segment)
+    call isHead
+    addq %rax, (%rsp)           # score for segment destroyed 
 
 .update_segment_end:
     popq %rax
@@ -318,6 +319,27 @@ update_segment:
     popq %rbp
     ret
 
+# %rdi = pointer to segment
+# --------------------------------------
+# %rax = 100 if head, 10 otherwise
+isHead:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    subq $12, %rdi               # segment before current
+    movb 11(%rdi), %al           # check if alive
+    cmpb $1, %al
+    je .notHead
+    movq $100, %rax
+    jmp .isHead_end
+
+.notHead:
+    movq $10, %rax
+
+.isHead_end:
+    movq %rbp, %rsp
+    popq %rbp
+    ret
 
 
 # %rdi = pointer to segment
@@ -345,9 +367,10 @@ destroy_segment:
 
     # Return all prev segments to last %32 position
     movq %rdi, %rbx
-    
+
+# //TODO: fix segment disalignment issue
 .move_segments_loop:
-    sub $12, %rbx               # previous segment
+    subq $12, %rbx               # previous segment
     
     cmpb $0, 11(%rbx)           # check if segment is alive
     je .destroy_segments_end    # if dead, stop moving segments
