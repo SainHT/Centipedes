@@ -71,18 +71,18 @@ update_flea:
 
 # 1/5 chance to spawn mushroom
 .spawn_mushroom:
-    movl (%rbx), %edx        # get x position
-    shr $5, %edx             # x / 32 -> col index
+    movl (%rbx), %edx           # get x position
+    shr $5, %edx                # x / 32 -> col index
 
-    shr $5, %edi             # y / 32 -> row index
+    shr $5, %edi                # y / 32 -> row index
 
     xor %rax, %rax
     movl %edi, %eax
     imull $GRID_COLS, %eax
-    addl %edx, %eax          # index = row * GRID_COLS + col
+    addl %edx, %eax             # index = row * GRID_COLS + col
 
-    movb (%rsi, %rax), %cl   # load grid cell
-    cmpb $0, %cl             # check if empty
+    movb (%rsi, %rax), %cl      # load grid cell
+    cmpb $0, %cl                # check if empty
     jne .check_flea_bullet_collision     # if not empty, skip
 
     pushq %rsi
@@ -90,13 +90,13 @@ update_flea:
 
     movq $0, %rdi
     movq $50, %rsi
-    call GetRandomValue     # 1 in 50 chance
+    call GetRandomValue         # 1 in 50 chance
     cmpq $0, %rax
     jne .check_flea_bullet_collision
 
     popq %rax
     popq %rsi
-    movb $3, (%rsi, %rax)  # set grid cell to mushroom (3)
+    movb $4, (%rsi, %rax)       # set grid cell to mushroom (4)
 
 .check_flea_bullet_collision:
     xorq %rax, %rax             # return score value
@@ -110,7 +110,7 @@ update_flea:
 
     call check_bullet_at_pos
     cmpq $1, %rax
-    jne .update_flea_end     # if no collision, skip destroy
+    jne .update_flea_end        # if no collision, skip destroy
 
     # Set flea state to dead
     movb $0, 8(%rbx)            # set state to dead
@@ -136,7 +136,7 @@ draw_flea:
     # check state
     movb 8(%rbx), %al           # load state
     cmpb $1, %al
-    jne .draw_flea_end        # if not alive, skip update
+    jne .draw_flea_end         # if not alive, skip update
 
     # Load flea
     movl  (%rbx), %edi          # load x position to %rdi

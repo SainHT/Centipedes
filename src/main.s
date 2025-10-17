@@ -1,24 +1,25 @@
 .section .text
 .global main
 
-# Grid generation function
+# Grid generation
 .extern generate_grid
 .extern draw_grid
 
-# Player functions
+# Input handling
 .extern bullet_update
 .extern bullet_shoot
-.extern check_bullet_at_pos
 .extern handle_input
-.extern check_player_at_pos
 
+# Collisions
+.extern check_bullet_at_pos
+.extern bullet_mushroom_collision
 
-# enemy functions
+# Enemy
 .extern init_enemies
 .extern update_enemies
 .extern draw_enemies
 
-# External raylib functions (System V x86-64 calling convention)
+# External raylib
 .extern InitWindow
 .extern WindowShouldClose
 .extern BeginDrawing
@@ -183,6 +184,12 @@ update_game:
     pushq %rbp
     movq %rsp, %rbp
 
+    # Bullet-Mushroom collision
+    leaq bullets(%rip), %rdi
+    leaq grid(%rip), %rsi
+    call bullet_mushroom_collision
+    addl %eax, score(%rip)      # add score from mushroom collisions
+
     # Update enemies
     leaq centipede(%rip), %rdi
     leaq spider(%rip), %rsi
@@ -198,7 +205,19 @@ update_game:
 
     # Level Complete
     addl $1, level(%rip)       # increase level
-    # //TODO: Redo grid (one segment shorter, one head split)
+    cmpl $MAX_SEGMENTS, level(%rip)
+    jl .skip_level_reset
+    movl $0, level(%rip)       # reset level after all segments are as heads
+
+.skip_level_reset:
+    # Clear player area
+    leaq grid(%rip), %rdi
+    addq $840, %rdi             # offset to clear player area
+    movq $120, %rcx             # size of grid (iteration)
+    xorq %rax, %rax             # zero value
+    rep stosb                   # store to pointer from register
+
+    # Respawn centipede
     leaq centipede(%rip), %rdi
     leaq spider(%rip), %rsi
     leaq flea(%rip), %rdx
