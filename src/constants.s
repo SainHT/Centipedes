@@ -21,8 +21,9 @@
 .equ MUSHROOMS, 50
 
 # ==============================================================================
-# COLOR CONSTANTS (ARGB)
+# COLOR CONSTANTS (AGBR) - because RayLib said so ::] (the reason is Big Endian)
 # ==============================================================================
+.equ TRANSPBLACK, 0x99000000
 .equ BLACK,  0xFF000000
 .equ WHITE,  0xFFFFFFFF
 .equ GREEN,  0xFF00FF00
