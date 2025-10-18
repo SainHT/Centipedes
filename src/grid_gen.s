@@ -7,7 +7,8 @@
 .include "../../src/constants.s"
 
 .section .data
-radius_16: .float 16.0
+radius_1: .float 12.0
+radius_2: .float 16.0
 
 .section .text
 # %rdi - grid pointer
@@ -122,9 +123,10 @@ draw_grid:
     pushq %rbx
     pushq %r12
     pushq %r13
+    pushq %r14
 
     movq %rdi, %rbx              # grid pointer in rbx
-    movq $GRID_ROWS + 4, %r8
+    movq $GRID_ROWS + 4, %r14
 
     xorq %r12, %r12              # row index
 .draw_grid_row_loop:
@@ -139,21 +141,85 @@ draw_grid:
     cmpb $0, %al
     je .no_mushroom
 
-    # draw mushroom (circle)
+    # draw mushroom cap
     movq %r13, %rax
     imulq $32, %rax             # x = col * 32
     addq $16, %rax              # center x
     movl %eax, %edi             # x in rdi
-
     movq %r12, %rax
     imulq $32, %rax             # y = row * 32
     addq $16, %rax              # center y
     movl %eax, %esi             # y in rsi
-
-    movss radius_16(%rip), %xmm0 # radius = 16.0 (float in xmm0)
-    movl $BROWN, %edx           # color in edx
-
+    movss radius_2(%rip), %xmm0 # radius = 16.0 (float in xmm0)
+    movl $SHROOM_OUTLINE, %edx           # color in edx
+    //movl $WHITE, %ecx         # color2 in ecx
     call DrawCircle
+    
+
+    movq %r13, %rax
+    imulq $32, %rax             # x = col * 32
+    addq $16, %rax              # center x
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax
+    imulq $32, %rax             # y = row * 32
+    addq $16, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movss radius_1(%rip), %xmm0 # radius = 14.0 (float in xmm0)
+    movl $SHROOM_FILL, %edx           # color in edx
+    call DrawCircle
+
+    # Wipe second half of circles
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $16, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $32, %edx              # width = 32
+    movl $16, %ecx              # height = 16
+    movl $BLACK, %r8d
+    call DrawRectangle
+    
+    # Draw bottom of mushroom cap
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $16, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $32, %edx              # width = 32
+    movl $4, %ecx              # height = 4
+    movl $SHROOM_OUTLINE, %r8d
+    call DrawRectangle
+
+    # Draw mushroom stem
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    addq $9, %rax
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $16, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $14, %edx              # width = 10
+    movl $16, %ecx              # height = 12
+    movl $SHROOM_OUTLINE, %r8d
+    call DrawRectangle
+
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    addq $13, %rax
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $20, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $6, %edx              # width = 10
+    movl $8, %ecx              # height = 12
+    movl $SHROOM_FILL, %r8d
+    call DrawRectangle
 
 .no_mushroom:
     incq %r13
@@ -161,9 +227,10 @@ draw_grid:
     jl .draw_grid_col_loop
 
     incq %r12
-    cmpq %r8, %r12
+    cmpq %r14, %r12
     jl .draw_grid_row_loop
 
+    popq %r14
     popq %r13
     popq %r12
     popq %rbx

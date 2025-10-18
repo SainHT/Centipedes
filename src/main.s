@@ -14,6 +14,9 @@
 .extern bullet_shoot
 .extern handle_input
 
+# Player
+.extern draw_player
+
 # Collisions
 .extern check_bullet_at_pos
 .extern bullet_mushroom_collision
@@ -31,6 +34,8 @@
 .extern EndDrawing
 .extern ClearBackground
 .extern DrawCircle
+.extern DrawEllipse
+//.extern DrawCircleGradient
 .extern DrawRectangle
 .extern TextFormat
 .extern DrawText
@@ -291,25 +296,6 @@ update_game:
     movl level(%rip), %ecx
     call init_enemies
 
-    
-    #Check bullet-enemy collision(pos left corner and width)
-    // leaq bullets(%rip), %rdi
-    // movq $200, %rsi # enemy_x
-    // movq $300, %rdx # enemy_y
-    // movq $100, %rcx # enemy_width
-    // call check_bullet_at_pos
-    #rax if there is a hit, increase score and reset enemy
-
-    // leaq player(%rip), %rdi
-    // movq $100, %rsi  # enemy x
-    // movq $900, %rdx      # enemy y
-    // movq $50, %rcx    # enemy size
-    // call check_player_at_pos
-    // cmpq $0, %rax
-    // je .update_done
-    // # Player hit, reset position and decrease score
-    // movq $800, player(%rip)
-    // movq $900, player+8(%rip)
 
 .update_done:
     popq %rbp
@@ -337,15 +323,18 @@ render_frame:
     call draw_enemies
 
     # Draw player (using System V x86-64 ABI)
-    movl player(%rip), %edi
-    movl player+8(%rip), %esi
-    movl player+16(%rip), %edx
-    movl player+16(%rip), %ecx
-    movl $GREEN, %r8d
-    call DrawRectangle
+    // movl player(%rip), %edi
+    // movl player+8(%rip), %esi
+    // movl player+16(%rip), %edx
+    // movl player+16(%rip), %ecx
+    // movl $GREEN, %r8d
+    // call DrawRectangle
+    movq player(%rip), %rdi
+    movq player+8(%rip), %rsi
+    movq player+16(%rip), %rdx
+    call draw_player
     
     # Draw bullets
-    # TODO: Loop through bullets and draw active ones
     movq $0,  bullet_index(%rip)
 .render_bullets_loop:
     leaq bullets+16(%rip), %rax

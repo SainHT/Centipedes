@@ -34,6 +34,12 @@
 .equ CYAN,   0xFFFFFF00
 .equ BULLET_COLOR, 0xFFFFFF00
 
+.equ SHROOM_FILL, 0xFF00FF00
+.equ SHROOM_OUTLINE, 0xFF0000FF
+
+.equ PLAYER_FILL, 0xFFFFFFFF
+.equ PLAYER_EYES, 0xFF0000FF
+
 # ==============================================================================
 # BULLET CONSTANTS
 # ==============================================================================
