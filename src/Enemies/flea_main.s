@@ -3,6 +3,13 @@
 .global update_flea
 .global draw_flea
 
+.section .data
+flea_radius_x: .float 10.0
+flea_radius_y: .float 16.0
+float_6: .float 6.0
+float_10: .float 10.0
+
+.section .text
 # Include constants
 .include "../../src/constants.s"
 
@@ -136,15 +143,55 @@ draw_flea:
     # check state
     movb 8(%rbx), %al           # load state
     cmpb $1, %al
-    jne .draw_flea_end         # if not alive, skip update
+    jne .draw_flea_end          # if not alive, skip update
 
     # Load flea
     movl  (%rbx), %edi          # load x position to %rdi
+    add $16, %edi               # center x
     movl 4(%rbx), %esi          # load y position to %rsi
-    movl $FLEA_SIZE, %edx       # load width to %rdx
-    movl %edx, %ecx             # load height to %rcx (square)
-    movl $CYAN, %r8d            # color
-    call DrawRectangle
+    add $16, %esi               # center y
+    movss flea_radius_x(%rip), %xmm0  # flea radius x
+    movss flea_radius_y(%rip), %xmm1  # flea radius y
+    movl $YELLOW, %edx          # color
+    call DrawEllipse
+
+    # Wings
+    movl  (%rbx), %edi          # load x position to %rdi
+    addl $4, %edi               # wing x
+    movl 4(%rbx), %esi          # load y position to %rsi
+    addl $10, %esi              # wing y
+    movss float_6(%rip), %xmm0  # wing radius x
+    movss float_10(%rip), %xmm1 # wing radius y
+    movl $CYAN, %edx            # color
+    call DrawEllipse
+
+    movl (%rbx), %edi           # load x position to %rdi
+    addl $28, %edi              # wing x
+    movl 4(%rbx), %esi          # load y position to %rsi
+    addl $10, %esi              # wing y
+    movss float_6(%rip), %xmm0  # wing radius x
+    movss float_10(%rip), %xmm1 # wing radius y
+    movl $CYAN, %edx            # color
+    call DrawEllipse
+
+    # Eyes
+    movl  (%rbx), %edi          # load x position to %rdi
+    addl $8, %edi               # eye x
+    movl 4(%rbx), %esi          # load y position to %rsi
+    addl $20, %esi              # eye y
+    movss float_6(%rip), %xmm0  # eye radius
+    movl $RED, %edx           # color
+    call DrawCircle
+
+    movl  (%rbx), %edi          # load x position to %rdi
+    addl $24, %edi              # eye x
+    movl 4(%rbx), %esi          # load y position to %rsi
+    addl $20, %esi              # eye y
+    movss float_6(%rip), %xmm0  # eye radius
+    movl $RED, %edx           # color
+    call DrawCircle
+
+
 
 .draw_flea_end:
     popq %rbx
