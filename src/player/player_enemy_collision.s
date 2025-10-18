@@ -55,7 +55,7 @@ player_enemy_collision:
 
     # Spider collision
 .spider_collision:
-    cmpb $0, 11(%r13)           # check if spider is alive
+    cmpb $0, 9(%r13)           # check if spider is alive
     je .flea_collision
     
     movq %rbx, %rdi             # player pointer
