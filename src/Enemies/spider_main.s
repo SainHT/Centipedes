@@ -3,6 +3,12 @@
 .global update_spider
 .global draw_spider
 
+.section .data
+spider_radius: .float 10.0
+spider_eye: .float 3.0
+
+
+.section .text
 # Include constants
 .include "../../src/constants.s"
 
@@ -158,10 +164,71 @@ draw_spider:
     # Load spider
     movl  (%rbx), %edi          # load x position to edi
     movl 4(%rbx), %esi          # load y position to esi
-    movl $SPIDER_SIZE, %edx     # load width to edx
-    movl $SPIDER_SIZE, %ecx     # load height to ecx (square)
-    movl $PINK, %r8d            # color
+    addl $10, %esi
+    movl $32, %edx              # load width to edx
+    movl $4, %ecx               # load height to ecx (square)
+    movl $YELLOW, %r8d          # color
     call DrawRectangle
+
+    movl  (%rbx), %edi          # load x position to edi
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $10, %esi
+    movl $4, %edx               # load width to edx
+    movl $24, %ecx              # load height to ecx (square)
+    movl $YELLOW, %r8d          # color
+    call DrawRectangle
+
+    movl  (%rbx), %edi          # load x position to edi
+    addl $28, %edi
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $10, %esi
+    movl $4, %edx               # load width to edx
+    movl $24, %ecx              # load height to ecx (square)
+    movl $YELLOW, %r8d          # color
+    call DrawRectangle
+
+    movl  (%rbx), %edi          # load x position to edi
+    addl $8, %edi
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $20, %esi
+    movl $4, %edx               # load width to edx
+    movl $10, %ecx               # load height to ecx (square)
+    movl $YELLOW, %r8d          # color
+    call DrawRectangle
+
+    movl  (%rbx), %edi          # load x position to edi
+    addl $20, %edi
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $20, %esi
+    movl $4, %edx               # load width to edx
+    movl $10, %ecx               # load height to ecx (square)
+    movl $YELLOW, %r8d          # color
+    call DrawRectangle
+
+    movl  (%rbx), %edi          # load x position to edi
+    addl $16, %edi              # center spider x
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $16, %esi              # center spider y
+    movss spider_radius(%rip), %xmm0 # load radius
+    movl $PINK, %edx           # color
+    call DrawCircle
+
+    # Eyes
+    movl  (%rbx), %edi          # load x position to edi
+    addl $12, %edi              # left eye x
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $12, %esi              # left eye y
+    movss spider_eye(%rip), %xmm0  # eye radius
+    movl $BLACK, %edx           # color
+    call DrawCircle
+
+    movl  (%rbx), %edi          # load x position to edi
+    addl $20, %edi              # right eye x
+    movl 4(%rbx), %esi          # load y position to esi
+    addl $12, %esi              # right eye y
+    movss spider_eye(%rip), %xmm0  # eye radius
+    movl $BLACK, %edx           # color
+    call DrawCircle
 
 .draw_spider_end:
     popq %rbx
