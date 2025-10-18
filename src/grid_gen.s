@@ -124,6 +124,7 @@ draw_grid:
     pushq %r12
     pushq %r13
     pushq %r14
+    pushq %r15
 
     movq %rdi, %rbx              # grid pointer in rbx
     movq $GRID_ROWS + 4, %r14
@@ -139,6 +140,7 @@ draw_grid:
     # checking if there's a mushroom
     movb (%rbx,%rax), %al
     cmpb $0, %al
+    movzbq %al, %r15
     je .no_mushroom
 
     # draw mushroom cap
@@ -221,6 +223,49 @@ draw_grid:
     movl $SHROOM_FILL, %r8d
     call DrawRectangle
 
+    cmpq $4, %r15
+    je .no_mushroom
+
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $24, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $32, %edx              # width = 32
+    movl $8, %ecx               # height = 8
+    movl $BLACK, %r8d
+    call DrawRectangle
+    cmpq $3, %r15
+    je .no_mushroom
+
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $16, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $32, %edx              # width = 32
+    movl $8, %ecx               # height = 8
+    movl $BLACK, %r8d
+    call DrawRectangle
+    cmpq $2, %r15
+    je .no_mushroom
+
+    movq %r13, %rax
+    shl $5, %rax                # x = col * 32
+    movl %eax, %edi             # x in rdi
+    movq %r12, %rax             # y = row * 32
+    shl $5, %rax
+    addq $8, %rax              # center y
+    movl %eax, %esi             # y in rsi
+    movl $32, %edx              # width = 32
+    movl $8, %ecx               # height = 8
+    movl $BLACK, %r8d
+    call DrawRectangle
+
 .no_mushroom:
     incq %r13
     cmpq $GRID_COLS, %r13
@@ -230,6 +275,7 @@ draw_grid:
     cmpq %r14, %r12
     jl .draw_grid_row_loop
 
+    popq %r15
     popq %r14
     popq %r13
     popq %r12
