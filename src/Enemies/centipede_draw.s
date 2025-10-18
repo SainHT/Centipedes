@@ -73,7 +73,7 @@ draw_segment:
     movl 4(%rbx), %esi          # load y position to rsi
     addl $16, %esi              # center y
     movss radius_14(%rip), %xmm0 # load radius
-    movl $YELLOW, %edx          # color
+    movl $GREEN, %edx          # color
     call DrawCircle
 
     # Eyes if head
@@ -85,7 +85,7 @@ draw_segment:
     movl 4(%rbx), %esi          # load y position to rsi
     addl $10, %esi              # left eye y
     movss float_4(%rip), %xmm0  # eye radius
-    movl $BLACK, %edx           # color
+    movl $RED, %edx           # color
     call DrawCircle
 
     movl (%rbx), %edi           # load x position to rdi
@@ -93,7 +93,7 @@ draw_segment:
     movl 4(%rbx), %esi          # load y position to rsi
     addl $22, %esi              # right eye y
     movss float_4(%rip), %xmm0  # eye radius
-    movl $BLACK, %edx           # color
+    movl $RED, %edx           # color
     call DrawCircle
 
 .draw_segment_end:
