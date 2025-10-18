@@ -25,8 +25,13 @@ game_over:
 
     call BeginDrawing
 
-    // movl $BLACK, %edi
-    // call ClearBackground
+    # Draw transparent overlay
+    movl $0, %edi                 # x position
+    movl $0, %esi                 # y position
+    movl $SCREEN_WIDTH, %edx      # width
+    movl $SCREEN_HEIGHT, %ecx     # height
+    movl $TRANSPBLACK, %r8d       # color
+    call DrawRectangle 
 
     # Draw "Game Over" text
     leaq game_over_text(%rip), %rdi

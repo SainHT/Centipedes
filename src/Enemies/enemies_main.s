@@ -19,8 +19,8 @@
 .include "../../src/constants.s"
 
 # %rdi = pointer to centipede
-# %rsi = pointer to spider
-# %rdx = pointer to flea
+# %rsi = pointer to spider (for testing)
+# %rdx = pointer to flea (for testing)
 # %rcx = level
 init_enemies:
     pushq %rbp
@@ -111,7 +111,7 @@ update_enemies:
 
     # spawn spider at random y position at left of screen
     movq $800, %rdi
-    movq $SCREEN_HEIGHT - 32, %rsi
+    movq $SCREEN_HEIGHT - 33, %rsi
     call GetRandomValue
     movl %eax, %edx               # y position
     movq $1, %rsi                 # x position

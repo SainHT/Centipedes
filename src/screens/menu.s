@@ -1,6 +1,6 @@
 .section .data
 menu_title: .asciz "Centipedes Reimagined"
-credits: .asciz "Developed by K. Zivic & T. Kovac"
+credits: .asciz "Developed by K. Zivcic & T. Kovac"
 instructions: .asciz "Press SPACE to Start"
 how_to_play_line1: .asciz "Centipedes have gone rogue!"
 how_to_play_line2: .asciz "You have to eliminate each and every one"
@@ -67,12 +67,20 @@ main_menu:
     movq %r13, %rdi
     call draw_centipede
 
+    # Draw transparent overlay
+    movl $0, %edi                 # x position
+    movl $0, %esi                 # y position
+    movl $SCREEN_WIDTH, %edx      # width
+    movl $SCREEN_HEIGHT, %ecx     # height
+    movl $TRANSPBLACK, %r8d       # color
+    call DrawRectangle 
+
     # Title
     leaq menu_title(%rip), %rdi
     movl $250, %esi               # x position
-    movl $10, %edx               # y position
-    movl $40, %ecx               # font size
-    movl $RED, %r8d            # color
+    movl $10, %edx                # y position
+    movl $40, %ecx                # font size
+    movl $RED, %r8d               # color
     call DrawText
 
     # How to Play

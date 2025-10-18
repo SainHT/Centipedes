@@ -17,6 +17,17 @@ init_centipede:
 
     movq %rdi, %rbx             # centipede pointer in %rbx
     movq %rsi, %r12             # x position in %r12
+
+    # reset centipede segments
+    xorq %rax, %rax
+.init_centipede_reset_loop:
+    imulq $12, %rax             # segment = 12 bytes
+    leaq (%rbx,%rax), %rdi      # current segment pointer in %rdi
+
+    movb $0, 11(%rdi)
+    incq %rax
+    cmpq $30, %rax
+    jl .init_centipede_reset_loop
    
     xorq %r13, %r13
     movl %ecx, %r13d             # level in %r13
@@ -31,7 +42,7 @@ init_centipede:
     movq $-1, %rax              # direction -1 (left)
     
 .init_centipede_loop:
-    movq %rax, %r9               # direction in %r9
+    movq %rax, %r9              # direction in %r9
     # Initialize centipede segments and positions
     xorq %rax, %rax             
     movq $11, %rdi
@@ -59,7 +70,7 @@ init_centipede:
     # Set initial position and state
     movl $480,  (%rdi)         # set x position
     movl %eax, 4(%rdi)         # y position
-    movb $8,   8(%rdi)          # speed
+    movb $8,   8(%rdi)         # speed
     movb %r9b, 9(%rdi)         # direction
     movb $1,  10(%rdi)         # absolute direction
     movb $1,  11(%rdi)         # state
@@ -266,7 +277,7 @@ update_segment:
 .update_position_y:
     # Update based on absolute direction (SPEED pixel movement speed)
     movl 4(%rbx), %ecx          # load y position to %rcx
-    movzbl 8(%rbx), %eax          # speed to %eax
+    movsbl 8(%rbx), %eax        # speed to %eax
     imull %r9d, %eax            # %eax = SPEED * absolute direction [-1; 1]
     addl %eax, %ecx             # move by row
     jmp .store_position
@@ -274,7 +285,7 @@ update_segment:
 .update_position_x:
     # Update based on direction (SPEED pixel movement speed)
     movl (%rbx), %edx           # load x position to %rdx
-    movzbl 8(%rbx), %eax          # speed to %eax
+    movsbl 8(%rbx), %eax        # speed to %eax
     imull %r8d, %eax            # %eax = SPEED * direction [-1; 1]
     addl %eax, %edx             # update x position
 
@@ -369,40 +380,24 @@ destroy_segment:
     movq %rdi, %rbx
 
 # //TODO: fix segment disalignment issue
-.move_segments_loop:
-    subq $12, %rbx               # previous segment
+.move_segments_loop_back:
+    addq $12, %rbx              # previous segment
     
     cmpb $0, 11(%rbx)           # check if segment is alive
-    je .destroy_segments_end    # if dead, stop moving segments
+    je .destroy_segments_end # if dead, stop moving segments
 
     movl (%rbx), %eax           # get x position
     shr $5, %eax                # align to 32
-    shl $5, %eax                # align to 32
-    cmpl %eax, (%rbx)
-    je .y_adjust
+    shl $5, %eax                # align to 32      
     movl %eax, (%rbx)           # set x position
-
-    cmpb $-1, 9(%rbx)          # check direction
-    jne .y_adjust
-    movl (%rbx), %eax          # get x position
-    addl $32, %eax              # move right
-    movl %eax, (%rbx)          # set x position
     
-.y_adjust:
-    movl 4(%rbx), %eax          # get y position
-    shr $5, %eax                # align to 32
-    shl $5, %eax                # align to 32
-    cmpl %eax, 4(%rbx)
-    je .move_segments_loop
-    movl %eax, 4(%rbx)          # set y position
 
-    cmpb $1, 9(%rbx)            # check direction
-    jne .move_segments_loop
-    movl 4(%rbx), %eax          # get y position
-    addl $32, %eax              # move down
-    movl %eax, 4(%rbx)          # set y position
+//     movl 4(%rbx), %eax          # get y position
+//     shr $5, %eax                # align to 32
+//     shl $5, %eax                # align to 32
+//     movl %eax, 4(%rbx)          # set y position
 
-    jmp .move_segments_loop
+     jmp .move_segments_loop_back
 
 .destroy_segments_end:
     popq %rbx
