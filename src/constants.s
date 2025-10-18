@@ -18,7 +18,7 @@
 # ==============================================================================
 .equ GRID_ROWS, 28
 .equ GRID_COLS, 30
-.equ MUSHROOMS, 50
+.equ MUSHROOMS, 30
 
 # ==============================================================================
 # COLOR CONSTANTS (AGBR) - because RayLib said so ::] (the reason is Big Endian)

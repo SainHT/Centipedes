@@ -46,6 +46,7 @@
 .section .data
 window_title: .asciz "Centipedes"
 score_text: .asciz "Score: %8i"
+lives_text: .asciz "Lives: %2i"
 
 # Game state variables
 grid: .zero 32 * 30     # 32x30 grid for mushrooms (value represents Health of mushroom)
@@ -133,7 +134,15 @@ main:
     leaq bullets(%rip), %rcx
     call main_menu
 
-.main_menu_skip:
+    movl $0, level(%rip)        # reset level to 0
+
+    # player reset
+    movl $0,   score(%rip)      # score
+    movl $0,   level(%rip)      # level
+    movq $400, player(%rip)     # player x
+    movq $800, player+8(%rip)   # player y
+    movb $3,   player+24(%rip)  # player lives
+
     # Generate the grid with mushrooms
     leaq grid(%rip), %rdi
     call generate_grid
@@ -234,12 +243,6 @@ update_game:
     xorq %rax, %rax             # zero value
     rep stosb                   # store to pointer from register
 
-    # game state reset
-    movl $0,   score(%rip)      # score
-    movl $0,   level(%rip)      # level
-    movq $400, player(%rip)     # player x
-    movq $800, player+8(%rip)   # player y
-    movb $3,   player+24(%rip)  # player lives
     # bullet reset
     movq $0, bullets+16(%rip)   # bullet 1 inactive
     movq $0, bullets+40(%rip)   # bullet 2 inactive
@@ -378,6 +381,18 @@ render_frame:
 
     movq %rax, %rdi              # formatted score string
     movl $10, %esi               # x position
+    movl $10, %edx               # y position
+    movl $20, %ecx               # font size
+    movl $WHITE, %r8d            # color
+    call DrawText
+
+    # Draw lives
+    leaq lives_text(%rip), %rdi
+    movzbl player+24(%rip), %esi
+    call TextFormat
+
+    movq %rax, %rdi              # formatted lives string
+    movl $800, %esi               # x position
     movl $10, %edx               # y position
     movl $20, %ecx               # font size
     movl $WHITE, %r8d            # color

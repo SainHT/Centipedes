@@ -1,6 +1,6 @@
 .section .data
 menu_title: .asciz "Centipedes Reimagined"
-credits: .asciz "Developed by K. Zivic & T. Kovac"
+credits: .asciz "Developed by K. Zivcic & T. Kovac"
 instructions: .asciz "Press SPACE to Start"
 how_to_play_line1: .asciz "Centipedes have gone rogue!"
 how_to_play_line2: .asciz "You have to eliminate each and every one"
