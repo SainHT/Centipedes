@@ -7,6 +7,7 @@ EYES_DIAMETER: .float 3.5
 
 .section .text
 .global draw_player
+.global draw_player_hp
 
 # Include constants
 .include "../../src/constants.s"
@@ -109,6 +110,37 @@ draw_player:
     call DrawCircle
 
     //popq %r12
+    popq %r13
+    popq %r14
+    popq %r15
+    popq %rbp
+    ret
+
+draw_player_hp:
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    pushq %r15
+    pushq %r14
+    pushq %r13
+
+    movq %rdi, %r15  # x of first hp
+    movq %rsi, %r14  # y of first hp
+    movq %rdx, %r13  # hp count
+
+.draw_hp_loop:
+    cmpq $0, %r13
+    je .draw_hp_done
+
+    movl %r15d, %edi
+    movl %r14d, %esi
+    call draw_player
+
+    addq $HP_SPACING, %r15
+    subq $1, %r13
+    jmp .draw_hp_loop
+    
+.draw_hp_done:
     popq %r13
     popq %r14
     popq %r15

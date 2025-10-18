@@ -16,6 +16,7 @@
 
 # Player
 .extern draw_player
+.extern draw_player_hp
 
 # Collisions
 .extern check_bullet_at_pos
@@ -336,7 +337,7 @@ render_frame:
     movq player+8(%rip), %rsi
     movq player+16(%rip), %rdx
     call draw_player
-    
+
     # Draw bullets
     movq $0,  bullet_index(%rip)
 .render_bullets_loop:
@@ -376,16 +377,21 @@ render_frame:
     call DrawText
 
     # Draw lives
-    leaq lives_text(%rip), %rdi
-    movzbl player+24(%rip), %esi
-    call TextFormat
+    // leaq lives_text(%rip), %rdi
+    // movzbl player+24(%rip), %esi
+    // call TextFormat
 
-    movq %rax, %rdi              # formatted lives string
-    movl $800, %esi               # x position
-    movl $10, %edx               # y position
-    movl $20, %ecx               # font size
-    movl $WHITE, %r8d            # color
-    call DrawText
+    // movq %rax, %rdi              # formatted lives string
+    // movl $800, %esi               # x position
+    // movl $10, %edx               # y position
+    // movl $20, %ecx               # font size
+    // movl $WHITE, %r8d            # color
+    // call DrawText
+
+    movq $800, %rdi           # x of first hp
+    movq $5, %rsi            # y of first hp
+    movzbq player+24(%rip), %rdx  # hp count
+    call draw_player_hp
 
     call EndDrawing
     

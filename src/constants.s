@@ -54,6 +54,7 @@
 # PLAYER CONSTANTS
 # ==============================================================================
 .equ PLAYER_SPEED, 6
+.equ HP_SPACING, 40
 
 .equ KEY_UP, 265
 .equ KEY_DOWN, 264
