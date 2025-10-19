@@ -54,7 +54,7 @@ init_centipede:
 
     # Initialize each segment
     movq %rax, %rcx            # number of segments in %rcx
-    subq %r13, %rcx            # reduce by level
+    subq %r13, %rcx            # %rcx = segments - level
     movq $1, %r8               # index in %r8
 .init_segment_loop:
     # Calculate segment pointer
@@ -85,20 +85,26 @@ init_centipede:
     leaq (%rbx,%rax), %rdi     # current segment pointer in %rdi
     movb $0, 11(%rdi)          # state (1 = alive)
 
-    # Detached heads (amount = level)
-    addq %r8, %r13
+    # %rcx = number of segments - level
+    # %r13 = level / detached heads counter
+    # %r8  = current memory space index (longest centipede + 1)
+
+    incq %r8                   # next detached head
+    shlq $1, %r13              # amount = level * 2 (create detached head + dead segment)
+    addq %r8, %r13             # %rcx = segments - level + (level * 2) = segments + level
+
 .detached_loop:
     cmpq %r13, %r8
-    jge .init_centipede_end    # loop all detached heads
+    jge .init_centipede_end
 
     # random direction
     movq $0, %rdi
     movq $1, %rsi
     call GetRandomValue
-    andq $1, %rax               # direction 0 or 1
+    andq $1, %rax              # direction 0 or 1
     cmpq $0, %rax
     jne .random_x
-    movq $-1, %rax              # direction -1 (left)
+    movq $-1, %rax             # direction -1 (left)
 
 .random_x:
     movq %rax, %r9              # direction in %r9
@@ -106,10 +112,10 @@ init_centipede:
     movq $0, %rdi
     movq $29, %rsi
     call GetRandomValue
-    imulq $32, %rax             # x = random * 32
+    imulq $32, %rax            # x = random * 32
     cmpq $480, %rax
     je .random_x               # x != 480 (big centipede starting position)
-    movq %rax, %r12             # x position in %r12
+    movq %rax, %r12            # x position in %r12
 
     # Calculate segment pointer
     movq %r8, %rax
@@ -124,6 +130,8 @@ init_centipede:
     movb $1,    10(%rdi)       # absolute direction
     movb $1,    11(%rdi)       # state
 
+    incq %r8
+    
     movb $0, 23(%rdi)          # state of next segment (dead)
 
     incq %r8
@@ -369,6 +377,7 @@ isHead:
     movq $10, %rax
 
 .isHead_end:
+    addq $12, %rdi               # restore segment pointer
     movq %rbp, %rsp
     popq %rbp
     ret
@@ -400,7 +409,6 @@ destroy_segment:
     # Return all prev segments to last %32 position
     movq %rdi, %rbx
 
-# //TODO: fix segment disalignment issue
 .move_segments_loop_back:
     addq $12, %rbx              # previous segment
     
@@ -421,6 +429,7 @@ destroy_segment:
      jmp .move_segments_loop_back
 
 .destroy_segments_end:
+    movq %rdi, %rbx
     popq %rbx
     movq %rbp, %rsp
     popq %rbp

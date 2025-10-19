@@ -140,8 +140,6 @@ main:
     leaq bullets(%rip), %rcx
     call main_menu
 
-    movl $0, level(%rip)        # reset level to 0
-
     # player reset
     movl $0,   score(%rip)      # score
     movl $0,   level(%rip)      # level
