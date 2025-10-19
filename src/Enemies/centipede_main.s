@@ -205,6 +205,27 @@ update_segment:
     movsbl  9(%rbx), %r8d       # load direction to %r8 (sign-extended)
     movsbl 10(%rbx), %r9d       # load absolute direction to %r9 (sign-extended)
 
+# Out of bounds check (32 buffer)
+    cmpl $SCREEN_HEIGHT + 32, %ecx   # y <= SCREEN_HEIGHT
+    jle .out_of_bounds_sides_left
+
+    movb $0, 11(%rbx)           # set state to dead
+    jmp .update_segment_end
+
+.out_of_bounds_sides_left:
+    cmpl $-32, %edx               # x >= 0
+    jge .out_of_bounds_sides_rght
+
+    movb $0, 11(%rbx)           # set state to dead
+    jmp .update_segment_end
+
+.out_of_bounds_sides_rght:
+    cmpl $SCREEN_WIDTH + 32, %edx    # x < SCREEN_WIDTH
+    jle .change_col
+
+    movb $0, 11(%rbx)           # set state to dead
+    jmp .update_segment_end
+
 .change_col:
     # Check if y-coordinate is divisible by 32 (every 4th movement)
     movl %ecx, %eax
