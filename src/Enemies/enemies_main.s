@@ -91,10 +91,10 @@ update_enemies:
     movq $0, %rdi
     movq $29, %rsi
     call GetRandomValue
-    shll $5, %eax                 # multiply by 32 for grid
-    movl %eax, %esi               # x position
-    movq $0, %rdx                 # y position
-    movq %r12, %rdi               # flea pointer
+    shll $5, %eax                # multiply by 32 for grid
+    movl %eax, %esi              # x position
+    movq $0, %rdx                # y position
+    movq %r12, %rdi              # flea pointer
     call init_flea
 
 .spider_check:
@@ -112,21 +112,29 @@ update_enemies:
     # spawn spider at random y position at left of screen
     movq $800, %rdi
     movq $SCREEN_HEIGHT - 33, %rsi
-    call GetRandomValue
-    movl %eax, %edx               # y position
-    movq $1, %rsi                 # x position
-    movq %rbx, %rdi               # spider pointer
+    call GetRandomValue          # random y position
+    pushq %rax
+    
+    movq $0, %rdi
+    movq $1, %rsi
+    call GetRandomValue          # random x position side
+    imulq $SCREEN_WIDTH - 34, %rax
+    addq $1, %rax                
+
+    movq %rax, %rsi              # x position
+    popq %rdx                    # y position
+    movq %rbx, %rdi              # spider pointer
     call init_spider
 
 .update_enemies_logic:
-    xorq %rax, %rax            # clear score
+    xorq %rax, %rax              # clear score
     pushq %rax
     # Update centipede
     movq %r14, %rdi
     movq %r13, %rsi
     movq %r15, %rdx
     call update_centipede
-    addl %eax, (%rsp)          # add score from centipede
+    addl %eax, (%rsp)            # add score from centipede
     
     # Update spider
     movq %rbx, %rdi

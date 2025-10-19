@@ -180,7 +180,7 @@ draw_flea:
     movl 4(%rbx), %esi          # load y position to %rsi
     addl $20, %esi              # eye y
     movss float_6(%rip), %xmm0  # eye radius
-    movl $RED, %edx           # color
+    movl $RED, %edx             # color
     call DrawCircle
 
     movl  (%rbx), %edi          # load x position to %rdi
@@ -188,7 +188,7 @@ draw_flea:
     movl 4(%rbx), %esi          # load y position to %rsi
     addl $20, %esi              # eye y
     movss float_6(%rip), %xmm0  # eye radius
-    movl $RED, %edx           # color
+    movl $RED, %edx             # color
     call DrawCircle
 
 
